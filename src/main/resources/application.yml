@@ -1,0 +1,26 @@
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  # Spring AI 模型配置（以 OpenAI 为例，其他模型可替换）
+  ai:
+    ollama:
+      init:
+        timeout: 60m
+        max-retries: 3
+        embedding:
+          additional-models:
+            - bge-m3
+        pull-model-strategy: when_missing
+      baseUrl: http://localhost:11434
+      embedding:
+        model: bge-m3
+      chat:
+        model: qwen3:4b-instruct
+# 日志配置（便于调试流程）
+logging:
+  level:
+    org.langchain4j: DEBUG
+    com.example: DEBUG
