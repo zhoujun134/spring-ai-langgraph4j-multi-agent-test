@@ -47,3 +47,6 @@
 
 **签名：** [您的姓名] [您的职位] [您的电子邮箱] [日期]
 ```
+
+# 参考链接:
++ [Spring AI + LangGraph4j 多智能体实战：智能数据分析报告生成系统](https://www.toutiao.com/article/7575133370535903779/?app=news_article&category_new=__all__&module_name=Android_tt_others&share_did=MS4wLjACAAAATjQD_ZZ7n8XOy3nk8PlRZSQWdCqkGkOA1dfnnyoqlnkVEHlX0epQL2R7JJ46DtYn&share_uid=MS4wLjABAAAAHMj2iaJcmoGYm9acDPiGN_zvOyIIGaayL4Ac3sxWX3k&timestamp=1764157362&tt_from=wechat&upstream_biz=Android_wechat&utm_campaign=client_share&utm_medium=toutiao_android&utm_source=wechat&share_token=32598347-2d4a-444d-b36e-faca314254ca&source=m_redirect&wid=1764486074282)
