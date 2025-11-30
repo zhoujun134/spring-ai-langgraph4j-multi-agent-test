@@ -1,4 +1,4 @@
-# Spring AI 与 LangGraph4j: 对智能体交互
+# Spring AI 与 LangGraph4j: 多智能体交互
 # 一、前置准备
 ## 1. 环境要求
 + JDK 17+（Spring AI 推荐版本） 
