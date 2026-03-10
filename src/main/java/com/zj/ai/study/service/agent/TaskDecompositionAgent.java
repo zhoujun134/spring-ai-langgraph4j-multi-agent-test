@@ -1,6 +1,7 @@
 package com.zj.ai.study.service.agent;
 
 import com.zj.ai.study.domain.dto.AnalysisTaskState;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.NodeAction;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import java.util.Map;
  * 任务拆解 Agent：解析用户需求中的关键信息（时间范围、指标、分析维度）
  */
 @Component
+@Slf4j
 public class TaskDecompositionAgent implements NodeAction<AnalysisTaskState> {
 
     private final ChatModel chatModel;
@@ -32,10 +34,10 @@ public class TaskDecompositionAgent implements NodeAction<AnalysisTaskState> {
                                 
                 用户需求：%s
                 """, userQuery);
-        System.out.println("任务拆解提示词：" + prompt);
+        log.info("任务拆解提示词：" + prompt);
         // 调用 AI 模型获取解析结果
         String jsonResult = chatModel.call(prompt);
-        System.out.println("任务拆解结果：" + jsonResult);
+        log.info("任务拆解结果：" + jsonResult);
 
         // 解析 JSON 到状态（简化处理，实际项目可用 Jackson 解析）
         return parseJsonToState(state, jsonResult);

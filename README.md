@@ -7,6 +7,7 @@
 + Spring Boot 3.2+ 
 + 一个可用的 AI 模型 API 密钥（如 OpenAI GPT-4、Anthropic Claude，或本地化模型如 Llama 3） 
 + 可选：数据库（本教程用 H2 内存库模拟订单数据）
++ 注意: 修改 application.yml 中的 spring.ai.ollama.chat.baseUrl, 比如本地: http://localhost:11434
 ## 2、核心依赖
    在实现该项目之前，主要涉及的依赖就是 spring ai 相关核心依赖和 langGraph4j 的相关依赖。本次使用的 langGraph4j 为最新的版本 1.7.4、
    主要的依赖 pom 文件如下:

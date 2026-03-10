@@ -1,6 +1,7 @@
 package com.zj.ai.study.service.agent;
 
 import com.zj.ai.study.domain.dto.AnalysisTaskState;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.NodeAction;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import java.util.Map;
  * 数据分析 Agent：对原始数据进行统计分析，提炼关键结论（如 Top3、增长率）
  */
 @Component
+@Slf4j
 public class DataAnalysisAgent implements NodeAction<AnalysisTaskState> {
 
     private final ChatModel chatModel;
@@ -42,7 +44,7 @@ public class DataAnalysisAgent implements NodeAction<AnalysisTaskState> {
 
         // 调用 AI 模型获取分析结果
         String analysisResult = chatModel.call(prompt);
-        System.out.println("数据分析结论：" + analysisResult);
+        log.info("数据分析结论：" + analysisResult);
 
         return state.withAnalysisResult(analysisResult);
     }

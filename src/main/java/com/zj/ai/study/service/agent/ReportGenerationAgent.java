@@ -1,6 +1,7 @@
 package com.zj.ai.study.service.agent;
 
 import com.zj.ai.study.domain.dto.AnalysisTaskState;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.NodeAction;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import java.util.Map;
  * 报告生成 Agent：将分析结论整理为结构化报告
  */
 @Component
+@Slf4j
 public class ReportGenerationAgent implements NodeAction<AnalysisTaskState> {
 
     private final ChatModel chatModel;
@@ -39,7 +41,7 @@ public class ReportGenerationAgent implements NodeAction<AnalysisTaskState> {
                 """, state.getTargetIndicator(), analysisResult, userQuery, timeRange);
 
         String reportDraft = chatModel.call(prompt);
-        System.out.println("报告草稿：" + reportDraft);
+        log.info("报告草稿：" + reportDraft);
 
         return state.withReportDraft(reportDraft);
     }

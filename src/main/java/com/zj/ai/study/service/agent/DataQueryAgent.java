@@ -3,6 +3,7 @@ package com.zj.ai.study.service.agent;
 import com.zj.ai.study.domain.dto.AnalysisTaskState;
 import com.zj.ai.study.service.TestDataInitializer;
 import com.zj.ai.study.utils.JSONUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.NodeAction;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,6 +17,7 @@ import java.util.Map;
  * 数据查询 Agent：根据拆解的条件查询数据库，获取原始数据
  */
 @Component
+@Slf4j
 public class DataQueryAgent implements NodeAction<AnalysisTaskState> {
 
     private final JdbcTemplate jdbcTemplate;
@@ -42,12 +44,12 @@ public class DataQueryAgent implements NodeAction<AnalysisTaskState> {
 
         // 2. 构建 SQL（根据指标和维度动态生成）
 //        String sql = buildQuerySql(targetIndicator, analysisDimension, startDate, endDate);
-//        System.out.println("执行 SQL：" + sql);
+//        log.info("执行 SQL：" + sql);
 
         // 3. 调用数据库工具执行查询
 //        List<Map<String, Object>> resultList = jdbcTemplate.query(sql, new ColumnMapRowMapper());
         String rawData = JSONUtils.toJSONString(TestDataInitializer.orders);
-        System.out.println("查询原始数据：" + rawData);
+        log.info("查询原始数据：" + rawData);
 
         // 4. 返回更新后的状态
         return state.withRawData(rawData);

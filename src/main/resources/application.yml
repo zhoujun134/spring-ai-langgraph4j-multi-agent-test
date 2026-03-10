@@ -12,15 +12,18 @@ spring:
         max-retries: 3
         embedding:
           additional-models:
-            - bge-m3
+            - qwen3-embedding:0.6b
         pull-model-strategy: when_missing
-      baseUrl: http://localhost:11434
+      baseUrl: ${OLLAMA_BASE_URL}
       embedding:
-        model: bge-m3
+        model: qwen3-embedding:0.6b
       chat:
-        model: qwen3:4b-instruct
+        model: qwen3.5:4b
+
+
 # 日志配置（便于调试流程）
 logging:
   level:
     org.langchain4j: DEBUG
     com.example: DEBUG
+

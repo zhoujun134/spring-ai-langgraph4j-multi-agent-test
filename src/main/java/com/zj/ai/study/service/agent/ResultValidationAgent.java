@@ -1,6 +1,7 @@
 package com.zj.ai.study.service.agent;
 
 import com.zj.ai.study.domain.dto.AnalysisTaskState;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.NodeAction;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import java.util.Map;
  * 结果校验 Agent：检查报告是否满足用户需求，不满足则标记重试
  */
 @Component
+@Slf4j
 public class ResultValidationAgent implements NodeAction<AnalysisTaskState> {
 
     private final ChatModel chatModel;
@@ -36,7 +38,7 @@ public class ResultValidationAgent implements NodeAction<AnalysisTaskState> {
                 """, userQuery, reportDraft);
 
         String validationResult = chatModel.call(prompt);
-        System.out.println("报告校验结果：" + validationResult);
+        log.info("报告校验结果：" + validationResult);
 
         // 标记是否需要重试
         boolean needRetry = "不符合".equals(validationResult.trim());
