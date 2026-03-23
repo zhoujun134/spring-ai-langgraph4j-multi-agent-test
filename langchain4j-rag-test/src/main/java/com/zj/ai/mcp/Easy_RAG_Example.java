@@ -41,7 +41,7 @@ public class Easy_RAG_Example {
     private static final ChatModel CHAT_MODEL = OllamaChatModel.builder()
             .baseUrl(ollamaBaseUrl)
             .modelName(ollamaChatModel)
-            .timeout(Duration.ofMillis(10))
+            .timeout(Duration.ofMinutes(10))
             .defaultRequestParameters(qwen359bOptions)
             .topK(20)
             .topP(0.95)
