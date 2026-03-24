@@ -19,7 +19,7 @@ import java.util.List;
 import static com.zj.ai.mcp.Utils.*;
 import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.loadDocuments;
 
-public class Easy_RAG_Example {
+public class EasyRAGExample {
 
     private static final Dotenv dotenv = Dotenv.configure()
             .directory("./")           // 指定 .env 文件目录
