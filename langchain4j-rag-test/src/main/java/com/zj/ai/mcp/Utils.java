@@ -1,5 +1,6 @@
 package com.zj.ai.mcp;
 
+import com.zj.ai.rag.Assistant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

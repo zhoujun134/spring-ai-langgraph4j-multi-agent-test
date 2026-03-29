@@ -1,4 +1,4 @@
-package com.zj.ai.mcp;
+package com.zj.ai.rag;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.segment.TextSegment;
