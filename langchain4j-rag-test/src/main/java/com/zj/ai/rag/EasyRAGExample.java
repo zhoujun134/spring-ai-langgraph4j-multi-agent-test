@@ -48,6 +48,8 @@ public class EasyRAGExample {
             .build();
 
     public static void main(String[] args) {
+        System.out.println(ollamaBaseUrl);
+        System.out.println(ollamaChatModel);
 
         // First, let's load documents that we want to use for RAG
         List<Document> documents = loadDocuments(toPath("documents/"), glob("*.txt"));

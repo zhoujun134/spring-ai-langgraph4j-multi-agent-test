@@ -25,6 +25,7 @@
         <gson.version>2.13.2</gson.version>
         <jackson-bom.version>2.15.2</jackson-bom.version>
         <converter-jackson.version>3.0.0</converter-jackson.version>
+        <langchain4j-beta.version>1.12.2-beta22</langchain4j-beta.version>
     </properties>
     <dependencies>
         <!--  spring boot 核心依赖-->
@@ -139,6 +140,17 @@
                 <version>${langchain4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!--      使用 playwright 操作浏览器，比如 chrome 浏览器      -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-community-browser-execution-engine-playwright</artifactId>
+                <version>${langchain4j-beta.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-community-tool-browser-use</artifactId>
+                <version>${langchain4j-beta.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -28,7 +28,7 @@ import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.load
  **/
 public class Main {
     private static final Dotenv dotenv = Dotenv.configure()
-            .directory("./")           // 指定 .env 文件目录
+            .directory("/Users/zj/IdeaProjects/zj/spring-ai-langgraph4j-multil-agent-test/")           // 指定 .env 文件目录
             .filename(".env")          // 指定文件名
             .ignoreIfMalformed()       // 忽略格式错误
             .load();
