@@ -16,7 +16,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import java.time.Duration;
 import java.util.List;
 
-import static com.zj.ai.mcp.Utils.*;
+import static com.zj.ai.common.Utils.*;
 import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.loadDocuments;
 
 public class EasyRAGExample {

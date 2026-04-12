@@ -1,4 +1,4 @@
-package com.zj.ai.mcp;
+package com.zj.ai.common;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.segment.TextSegment;
@@ -15,8 +15,8 @@ import io.github.cdimascio.dotenv.Dotenv;
 import java.time.Duration;
 import java.util.List;
 
-import static com.zj.ai.mcp.Utils.glob;
-import static com.zj.ai.mcp.Utils.toPath;
+import static com.zj.ai.common.Utils.glob;
+import static com.zj.ai.common.Utils.toPath;
 import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.loadDocuments;
 
 /**

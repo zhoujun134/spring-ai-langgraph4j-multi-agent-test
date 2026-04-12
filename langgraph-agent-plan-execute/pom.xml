@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>langchain4j-rag-test</artifactId>
+    <artifactId>langgraph-agent-plan-execute</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -18,30 +18,42 @@
     </properties>
 
     <dependencies>
-
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-ollama</artifactId>
-        </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
         </dependency>
+<!--        openai 聊天模型-->
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-easy-rag</artifactId>
+            <artifactId>langchain4j-open-ai</artifactId>
         </dependency>
         <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-community-browser-execution-engine-playwright</artifactId>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-community-tool-browser-use</artifactId>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-langchain4j</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-agent-executor</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- 读取 java 环境变量的包 -->
         <dependency>
             <groupId>io.github.cdimascio</groupId>
             <artifactId>java-dotenv</artifactId>
+            <version>${java-dotenv.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zj.ai.langchain4j</groupId>
+            <artifactId>zj-ai-common-sdk</artifactId>
+            <version>${rversion}</version>
         </dependency>
     </dependencies>
 </project>
