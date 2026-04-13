@@ -1,6 +1,7 @@
 package com.zj.ai.langgraph4j.config;
 
 import com.zj.ai.common.sdk.dotenv.DotEnvUtils;
+import com.zj.ai.common.sdk.json.JSONUtils;
 import com.zj.ai.langgraph4j.domain.entity.ModelConfigEntity;
 import com.zj.ai.langgraph4j.domain.entity.ToolConfigEntity;
 import com.zj.ai.langgraph4j.repository.ModelConfigRepository;
@@ -52,20 +53,21 @@ public class DataInitializer implements CommandLineRunner {
         // 从环境变量获取 Ollama 配置
         String ollamaBaseUrl = DotEnvUtils.getDotEnvValue("OLLAMA_BASE_URL");
         String ollamaModel = DotEnvUtils.getDotEnvValue("OLLAMA_CHAT_MODEL");
+        log.info("ollamaBaseUrl: {}, ollamaModel:{}", ollamaBaseUrl, ollamaModel);
 
         // 创建 Ollama 模型配置
         ModelConfigEntity ollamaConfig = new ModelConfigEntity();
-        ollamaConfig.setModelName("ollama-gemma4");
+        ollamaConfig.setModelName("gemma4");
         ollamaConfig.setProvider("ollama");
         ollamaConfig.setBaseUrl(ollamaBaseUrl != null ? ollamaBaseUrl : "http://localhost:11434");
-        ollamaConfig.setModelId(ollamaModel != null ? ollamaModel : "gemma4:e4b");
+        ollamaConfig.setModelId(ollamaModel != null ? ollamaModel : "gemma4-26b-q3");
         ollamaConfig.setTemperature(0.7);
-        ollamaConfig.setMaxTokens(4096);
+        ollamaConfig.setMaxTokens(64000);
         ollamaConfig.setEnabled(true);
         ollamaConfig.setIsDefault(true);
 
         modelConfigRepository.save(ollamaConfig);
-        log.info("已创建 Ollama 模型配置: {}", ollamaConfig.getModelName());
+        log.info("已创建 Ollama 模型配置: {}", JSONUtils.toJSONString(ollamaConfig));
     }
 
     /**

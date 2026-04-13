@@ -178,13 +178,8 @@ public class PlanExecuteState extends AgentState {
 
     /**
      * 转换为 Map（用于状态持久化）
-     * 同时更新内部 data Map 以保持同步
      */
     public Map<String, Object> toMap() {
-        // 先更新内部数据
-        updateInternalData();
-
-        // 返回新的 Map
         Map<String, Object> map = new HashMap<>();
         map.put("userQuery", userQuery);
         map.put("plan", plan);
