@@ -1,9 +1,11 @@
 package com.zj.ai.langgraph4j.domain.dto;
 
+import com.zj.ai.langgraph4j.domain.constants.StepStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -18,6 +20,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class PlanStep implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -41,36 +44,14 @@ public class PlanStep implements Serializable {
     private String toolInput;
 
     /**
-     * 预期输出
+     * 步骤执行结果
      */
-    private String expectedOutput;
+    private Object result;
 
     /**
      * 步骤状态
      */
     private StepStatus status = StepStatus.PENDING;
-
-    /**
-     * 步骤状态枚举
-     */
-    public enum StepStatus {
-        /**
-         * 待执行
-         */
-        PENDING,
-        /**
-         * 执行中
-         */
-        EXECUTING,
-        /**
-         * 已完成
-         */
-        COMPLETED,
-        /**
-         * 失败
-         */
-        FAILED
-    }
 
     /**
      * 创建待执行步骤

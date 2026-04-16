@@ -38,7 +38,7 @@ public class AgentController {
             // 创建初始状态
             PlanExecuteState state = new PlanExecuteState();
             state.setUserQuery(request.getQuery());
-            state.setMaxReplanAttempts(request.getMaxReplanAttempts() != null ? request.getMaxReplanAttempts() : 3);
+            state.setMaxRePlanAttempts(request.getMaxReplanAttempts() != null ? request.getMaxReplanAttempts() : 3);
 
             // 执行工作流
             PlanExecuteState result = planExecuteWorkflow.invoke(state.toMap())

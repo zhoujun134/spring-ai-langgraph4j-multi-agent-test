@@ -1,6 +1,7 @@
 package com.zj.ai.langgraph4j.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zj.ai.langgraph4j.domain.constants.StepStatus;
 import com.zj.ai.langgraph4j.domain.dto.PlanStep;
 import com.zj.ai.langgraph4j.domain.entity.ToolConfigEntity;
 import com.zj.ai.langgraph4j.domain.state.PlanExecuteState;
@@ -39,12 +40,12 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
     @Override
     public Map<String, Object> apply(PlanExecuteState state) throws Exception {
         log.info("=== ReplanAgent: 开始重新规划 ===");
-        log.info("当前重规划次数: {}/{}", state.getReplanCount(), state.getMaxReplanAttempts());
+        log.info("当前重规划次数: {}/{}", state.getRePlanCount(), state.getMaxRePlanAttempts());
 
         // 1. 增加重规划计数
-        int newReplanCount = state.getReplanCount() + 1;
-        state.setReplanCount(newReplanCount);
-        log.info("更新后重规划次数: {}/{}", newReplanCount, state.getMaxReplanAttempts());
+        int newReplanCount = state.getRePlanCount() + 1;
+        state.setRePlanCount(newReplanCount);
+        log.info("更新后重规划次数: {}/{}", newReplanCount, state.getMaxRePlanAttempts());
 
         // 2. 构建包含失败信息的 Prompt
         String prompt = buildReplanPrompt(state);
@@ -159,7 +160,7 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
                         String toolName = (String) stepMap.get("toolName");
                         String toolInput = (String) stepMap.get("toolInput");
 
-                        steps.add(new PlanStep(stepIndex, description, toolName, toolInput, null, PlanStep.StepStatus.PENDING));
+                        steps.add(new PlanStep(stepIndex, description, toolName, toolInput, null, StepStatus.PENDING));
                     }
                 }
             }

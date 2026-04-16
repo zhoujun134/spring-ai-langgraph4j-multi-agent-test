@@ -27,7 +27,7 @@ class PlanExecuteWorkflowTest {
         // 创建初始状态
         PlanExecuteState state = new PlanExecuteState();
         state.setUserQuery("计算 25 * 4 + 10 的结果");
-        state.setMaxReplanAttempts(3);
+        state.setMaxRePlanAttempts(3);
 
         // 执行工作流
         PlanExecuteState result = planExecuteWorkflow.invoke(state.toMap())
@@ -46,7 +46,7 @@ class PlanExecuteWorkflowTest {
         // 创建初始状态
         PlanExecuteState state = new PlanExecuteState();
         state.setUserQuery("北京今天天气怎么样？");
-        state.setMaxReplanAttempts(3);
+        state.setMaxRePlanAttempts(3);
 
         // 执行工作流
         PlanExecuteState result = planExecuteWorkflow.invoke(state.toMap())
@@ -65,7 +65,7 @@ class PlanExecuteWorkflowTest {
         // 创建初始状态
         PlanExecuteState state = new PlanExecuteState();
         state.setUserQuery("搜索关于人工智能的最新资讯");
-        state.setMaxReplanAttempts(3);
+        state.setMaxRePlanAttempts(3);
 
         // 执行工作流
         PlanExecuteState result = planExecuteWorkflow.invoke(state.toMap())
@@ -84,7 +84,7 @@ class PlanExecuteWorkflowTest {
         // 创建初始状态
         PlanExecuteState state = new PlanExecuteState();
         state.setUserQuery("帮我计算 100 / 5 的结果，然后查询上海的天气");
-        state.setMaxReplanAttempts(3);
+        state.setMaxRePlanAttempts(3);
 
         // 执行工作流
         PlanExecuteState result = planExecuteWorkflow.invoke(state.toMap())

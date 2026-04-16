@@ -1,6 +1,7 @@
 package com.zj.ai.langgraph4j.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zj.ai.langgraph4j.domain.constants.StepStatus;
 import com.zj.ai.langgraph4j.domain.dto.PlanStep;
 import com.zj.ai.langgraph4j.domain.entity.ToolConfigEntity;
 import com.zj.ai.langgraph4j.domain.state.PlanExecuteState;
@@ -142,7 +143,7 @@ public class PlanAgent implements NodeAction<PlanExecuteState> {
                         String toolName = (String) stepMap.get("toolName");
                         String toolInput = (String) stepMap.get("toolInput");
 
-                        steps.add(new PlanStep(stepIndex, description, toolName, toolInput, null, PlanStep.StepStatus.PENDING));
+                        steps.add(new PlanStep(stepIndex, description, toolName, toolInput, null, StepStatus.PENDING));
                     }
                 }
             }

@@ -55,12 +55,12 @@ public class PlanExecuteState extends AgentState {
     /**
      * 重新规划次数
      */
-    private int replanCount = 0;
+    private int rePlanCount = 0;
 
     /**
      * 最大重新规划次数
      */
-    private int maxReplanAttempts = 3;
+    private int maxRePlanAttempts = 3;
 
     // ==================== 执行相关 ====================
 
@@ -121,7 +121,7 @@ public class PlanExecuteState extends AgentState {
     private void updateInternalData() {
         Map<String, Object> data = this.data();
         if (data != null) {
-            data.put("replanCount", replanCount);
+            data.put("replanCount", rePlanCount);
             data.put("planFeasible", planFeasible);
             data.put("validationResult", validationResult);
             data.put("plan", plan);
@@ -142,8 +142,8 @@ public class PlanExecuteState extends AgentState {
         this.userQuery = (String) data.get("userQuery");
         this.validationResult = (String) data.get("validationResult");
         this.planFeasible = Boolean.TRUE.equals(data.get("planFeasible"));
-        this.replanCount = data.get("replanCount") != null ? (Integer) data.get("replanCount") : 0;
-        this.maxReplanAttempts = data.get("maxReplanAttempts") != null ? (Integer) data.get("maxReplanAttempts") : 3;
+        this.rePlanCount = data.get("replanCount") != null ? (Integer) data.get("replanCount") : 0;
+        this.maxRePlanAttempts = data.get("maxReplanAttempts") != null ? (Integer) data.get("maxReplanAttempts") : 3;
         this.currentStepIndex = data.get("currentStepIndex") != null ? (Integer) data.get("currentStepIndex") : 0;
         this.finalAnswer = (String) data.get("finalAnswer");
         this.completed = Boolean.TRUE.equals(data.get("completed"));
@@ -186,8 +186,8 @@ public class PlanExecuteState extends AgentState {
         map.put("currentStepIndex", currentStepIndex);
         map.put("validationResult", validationResult);
         map.put("planFeasible", planFeasible);
-        map.put("replanCount", replanCount);
-        map.put("maxReplanAttempts", maxReplanAttempts);
+        map.put("replanCount", rePlanCount);
+        map.put("maxReplanAttempts", maxRePlanAttempts);
         map.put("executionResults", executionResults);
         map.put("currentTool", currentTool);
         map.put("currentToolInput", currentToolInput);
@@ -220,7 +220,7 @@ public class PlanExecuteState extends AgentState {
      * 增加重规划计数
      */
     public PlanExecuteState incrementReplanCount() {
-        this.replanCount++;
+        this.rePlanCount++;
         return this;
     }
 
@@ -259,7 +259,7 @@ public class PlanExecuteState extends AgentState {
      */
     @JsonIgnore
     public boolean canReplan() {
-        return replanCount < maxReplanAttempts;
+        return rePlanCount < maxRePlanAttempts;
     }
 
     /**
