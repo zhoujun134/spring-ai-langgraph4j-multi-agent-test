@@ -6,6 +6,8 @@ import com.zj.ai.langgraph4j.edge.PlanValidationEdge;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.StateGraph;
+import org.bsc.langgraph4j.checkpoint.MemorySaver;
+import org.bsc.langgraph4j.CompileConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,10 +35,10 @@ import static org.bsc.langgraph4j.action.AsyncNodeAction.node_async;
 public class PlanExecuteWorkflowConfig {
 
     /**
-     * 创建 Plan-Execute 工作流
+     * 创建 StateGraph（供 Studio 使用）
      */
     @Bean
-    public CompiledGraph<PlanExecuteState> planExecuteWorkflow(
+    public StateGraph<PlanExecuteState> planExecuteStateGraph(
             PlanAgent planAgent,
             ValidateAgent validateAgent,
             ExecuteAgent executeAgent,
@@ -44,7 +46,7 @@ public class PlanExecuteWorkflowConfig {
             PlanValidationEdge validationEdge,
             PlanExecuteStateFactory stateFactory) {
 
-        log.info("=== 初始化 Plan-Execute 工作流 ===");
+        log.info("=== 创建 Plan-Execute StateGraph ===");
 
         try {
             // 1. 创建 StateGraph
@@ -82,8 +84,32 @@ public class PlanExecuteWorkflowConfig {
             // replan → validate (重新规划后直接验证，不需要重新制定计划)
             graph.addEdge("replan", "validate");
 
-            // 6. 编译工作流
-            CompiledGraph<PlanExecuteState> compiled = graph.compile();
+            log.info("=== Plan-Execute StateGraph 创建完成 ===");
+
+            return graph;
+
+        } catch (Exception e) {
+            log.error("StateGraph 创建失败", e);
+            throw new RuntimeException("Failed to create plan-execute state graph", e);
+        }
+    }
+
+    /**
+     * 创建 Plan-Execute 工作流
+     */
+    @Bean
+    public CompiledGraph<PlanExecuteState> planExecuteWorkflow(
+            StateGraph<PlanExecuteState> graph) {
+
+        log.info("=== 编译 Plan-Execute 工作流 ===");
+
+        try {
+            // 编译工作流，添加 MemorySaver 用于 studio 持久化
+            CompileConfig compileConfig = CompileConfig.builder()
+                    .checkpointSaver(new MemorySaver())
+                    .build();
+
+            CompiledGraph<PlanExecuteState> compiled = graph.compile(compileConfig);
 
             log.info("=== Plan-Execute 工作流初始化完成 ===");
 

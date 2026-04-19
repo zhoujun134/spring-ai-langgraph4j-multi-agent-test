@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan-Execute Agent Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .input-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .input-section input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .graph-section {
+            margin-bottom: 20px;
+        }
+        .graph-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        #graph-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        .output-section {
+            margin-top: 20px;
+        }
+        .output-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        #output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .status.idle {
+            background: #e0e0e0;
+            color: #666;
+        }
+        .status.running {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .examples {
+            margin-bottom: 20px;
+        }
+        .examples h4 {
+            margin-bottom: 10px;
+            color: #666;
+        }
+        .example-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .example-btn {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Plan-Execute Agent Studio</h1>
+            <p>可视化工作流调试界面 - 输入问题，观察 AI Agent 的规划和执行过程</p>
+        </div>
+
+        <div class="card">
+            <div class="examples">
+                <h4>示例问题:</h4>
+                <div class="example-btns">
+                    <button class="example-btn" onclick="setExample('计算 123 + 456 的结果')">简单计算</button>
+                    <button class="example-btn" onclick="setExample('帮我查询北京今天的天气情况')">天气查询</button>
+                    <button class="example-btn" onclick="setExample('分析一下 Spring Boot 和 Django 的区别')">技术对比</button>
+                    <button class="example-btn" onclick="setExample('帮我写一个冒泡排序的 Python 代码')">代码生成</button>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <input type="text" id="query-input" placeholder="请输入您的问题..." />
+                <button class="btn" id="submit-btn" onclick="executeWorkflow()">执行</button>
+            </div>
+
+            <span class="status idle" id="status">就绪</span>
+        </div>
+
+        <div class="card graph-section">
+            <h3>工作流图</h3>
+            <div id="graph-container">
+                <div class="mermaid" id="mermaid-graph"></div>
+            </div>
+        </div>
+
+        <div class="card output-section">
+            <h3>执行结果</h3>
+            <div id="output">等待执行...</div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
+        // 初始化加载图结构
+        async function initGraph() {
+            try {
+                const response = await fetch('/init');
+                const data = await response.json();
+
+                // 渲染 Mermaid 图
+                const mermaidDiv = document.getElementById('mermaid-graph');
+                // 清理 mermaid 代码中的注释行
+                const cleanGraph = data.graph.replace(/%%.*$/gm, '').trim();
+                mermaidDiv.textContent = cleanGraph;
+                await mermaid.run();
+
+                document.getElementById('output').textContent = '工作流已加载，请输入问题开始执行。';
+            } catch (error) {
+                document.getElementById('output').textContent = '加载工作流失败: ' + error.message;
+            }
+        }
+
+        // 设置示例
+        function setExample(text) {
+            document.getElementById('query-input').value = text;
+        }
+
+        // 执行工作流
+        async function executeWorkflow() {
+            const query = document.getElementById('query-input').value.trim();
+            if (!query) {
+                alert('请输入问题');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            const statusEl = document.getElementById('status');
+            const outputEl = document.getElementById('output');
+
+            submitBtn.disabled = true;
+            statusEl.className = 'status running';
+            statusEl.textContent = '执行中...';
+            outputEl.textContent = '正在执行工作流...\n';
+
+            try {
+                const response = await fetch('/api/agent/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = '执行成功';
+
+                    let output = `问题: ${result.query}\n\n`;
+                    if (result.plan) {
+                        output += `=== 执行计划 ===\n${JSON.stringify(result.plan, null, 2)}\n\n`;
+                    }
+                    if (result.executionResults && result.executionResults.length > 0) {
+                        output += `=== 执行结果 ===\n`;
+                        result.executionResults.forEach((r, i) => {
+                            output += `[${i + 1}] ${JSON.stringify(r, null, 2)}\n`;
+                        });
+                        output += '\n';
+                    }
+                    if (result.finalAnswer) {
+                        output += `=== 最终答案 ===\n${result.finalAnswer}\n`;
+                    }
+                    outputEl.textContent = output;
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '执行失败';
+                    outputEl.textContent = `错误: ${result.error}\n`;
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '网络错误';
+                outputEl.textContent = `请求失败: ${error.message}\n`;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // 回车提交
+        document.getElementById('query-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                executeWorkflow();
+            }
+        });
+
+        // 页面加载时初始化
+        initGraph();
+    </script>
+</body>
+</html>

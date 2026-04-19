@@ -79,5 +79,11 @@
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- LangGraph4j Studio for Spring Boot -->
+        <dependency>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-studio-springboot</artifactId>
+        </dependency>
     </dependencies>
 </project>

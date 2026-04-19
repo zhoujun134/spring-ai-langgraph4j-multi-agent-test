@@ -61,3 +61,9 @@ logging:
   level:
     com.zj.ai.langgraph4j: DEBUG
     org.bsc.langgraph4j: DEBUG
+
+# LangGraph Studio 配置
+langgraph:
+  studio:
+    enabled: true
+    # Studio UI 访问路径: http://localhost:8081/?instance=default
