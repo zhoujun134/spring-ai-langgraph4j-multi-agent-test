@@ -134,23 +134,27 @@ public class DynamicModelManager {
 
     private OpenAiChatModel createOpenAiChatModel(ModelConfigEntity config) {
         return OpenAiChatModel.builder()
-                .baseUrl(config.getBaseUrl() != null ? config.getBaseUrl() + "/v1" : null)
+                .baseUrl(config.getBaseUrl())
                 .apiKey(config.getApiKey())
                 .modelName(config.getModelId())
                 .temperature(config.getTemperature() != null ? config.getTemperature() : 0.7)
-                .maxTokens(config.getMaxTokens() != null ? config.getMaxTokens() : 4096)
+                .maxTokens(config.getMaxTokens() != null ? config.getMaxTokens() : 32000)
                 .timeout(Duration.ofMinutes(10))
+                .returnThinking(true)
+                .customQueryParams(Map.of("enable_thinking", "true"))
                 .build();
     }
 
     private OpenAiStreamingChatModel createOpenAiStreamingModel(ModelConfigEntity config) {
         return OpenAiStreamingChatModel.builder()
-                .baseUrl(config.getBaseUrl() != null ? config.getBaseUrl() + "/v1" : null)
+                .baseUrl(config.getBaseUrl())
                 .apiKey(config.getApiKey())
                 .modelName(config.getModelId())
                 .temperature(config.getTemperature() != null ? config.getTemperature() : 0.7)
-                .maxTokens(config.getMaxTokens() != null ? config.getMaxTokens() : 4096)
+                .maxTokens(config.getMaxTokens() != null ? config.getMaxTokens() : 32000)
                 .timeout(Duration.ofMinutes(10))
+                .returnThinking(true)
+                .customQueryParams(Map.of("enable_thinking", "true"))
                 .build();
     }
 

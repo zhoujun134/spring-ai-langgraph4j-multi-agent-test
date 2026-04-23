@@ -1,6 +1,7 @@
 package com.zj.ai.langgraph4j.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zj.ai.common.sdk.json.JSONUtils;
 import com.zj.ai.langgraph4j.domain.constants.StepStatus;
 import com.zj.ai.langgraph4j.domain.dto.PlanStep;
 import com.zj.ai.langgraph4j.domain.entity.ToolConfigEntity;
@@ -11,10 +12,9 @@ import dev.langchain4j.model.chat.ChatModel;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.NodeAction;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,19 +56,29 @@ public class PlanAgent implements NodeAction<PlanExecuteState> {
         String planResponse = model.chat(prompt);
 
         log.info("模型返回的计划:\n{}", planResponse);
-
         // 4. 解析计划步骤
-        List<PlanStep> steps = parsePlanSteps(planResponse);
-
-        // 5. 更新状态
-        state.setPlan(steps);
-        // 注意：不要重置 replanCount，让它保持递增状态
-
-        log.info("生成的计划步骤数: {}", steps.size());
-        for (PlanStep step : steps) {
-            log.info("  步骤 {}: {} - 工具: {}", step.getStepIndex(), step.getDescription(), step.getToolName());
+//        List<PlanStep> steps = parsePlanSteps(planResponse);
+        String finalAnswer = JSONUtils.getJsonValue(planResponse, "finalAnswer");
+        List<PlanStep> steps = JSONUtils.getJsonValue(planResponse, "steps");
+        if (CollectionUtils.isEmpty(steps) && Objects.nonNull(finalAnswer)) {
+            state.setFinalAnswer(finalAnswer);
+            state.setPlanFeasible(false);
+            state.setCompleted(true);
+            return state.toMap();
         }
-
+        if (!CollectionUtils.isEmpty(steps)) {
+            // 5. 更新状态
+            state.setPlanSteps(steps);
+            log.info("生成的计划步骤数: {}", steps.size());
+            for (PlanStep step : steps) {
+                log.info("  步骤 {}: {} - 工具: {}", step.getStepIndex(), step.getDescription(), step.getToolName());
+            }
+            return state.toMap();
+        }
+        // steps 为空，finalAnswer 为空
+        state.setFinalAnswer("计划生成失败，请检查模型配置");
+        state.setPlanSteps(Collections.emptyList());
+        state.setCompleted(true);
         return state.toMap();
     }
 

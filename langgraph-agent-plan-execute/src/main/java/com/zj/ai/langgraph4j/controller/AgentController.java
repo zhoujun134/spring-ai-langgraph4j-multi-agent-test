@@ -48,7 +48,7 @@ public class AgentController {
             return ResponseEntity.ok(Map.of(
                     "success", result.isCompleted(),
                     "query", request.getQuery(),
-                    "plan", result.getPlan(),
+                    "plan", result.getPlanSteps(),
                     "executionResults", result.getExecutionResults(),
                     "finalAnswer", result.getFinalAnswer(),
                     "errorMessage", result.getErrorMessage() != null ? result.getErrorMessage() : ""

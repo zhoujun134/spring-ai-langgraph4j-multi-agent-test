@@ -1,18 +1,23 @@
 package com.zj.ai.langgraph4j.config;
 
-import com.zj.ai.langgraph4j.agent.*;
+import com.zj.ai.langgraph4j.agent.ExecuteAgent;
+import com.zj.ai.langgraph4j.agent.PlanAgent;
+import com.zj.ai.langgraph4j.agent.ReplanAgent;
+import com.zj.ai.langgraph4j.agent.ValidateAgent;
+import com.zj.ai.langgraph4j.agent.action.NodeActionEnum;
+import com.zj.ai.langgraph4j.agent.edge.PlanValidationEdge;
 import com.zj.ai.langgraph4j.domain.state.PlanExecuteState;
-import com.zj.ai.langgraph4j.edge.PlanValidationEdge;
 import lombok.extern.slf4j.Slf4j;
+import org.bsc.langgraph4j.CompileConfig;
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.checkpoint.MemorySaver;
-import org.bsc.langgraph4j.CompileConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
+import static com.zj.ai.langgraph4j.agent.action.NodeActionEnum.*;
 import static org.bsc.langgraph4j.StateGraph.END;
 import static org.bsc.langgraph4j.StateGraph.START;
 import static org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async;
@@ -53,36 +58,36 @@ public class PlanExecuteWorkflowConfig {
             StateGraph<PlanExecuteState> graph = new StateGraph<>(stateFactory);
 
             // 2. 添加节点
-            graph.addNode("plan", node_async(planAgent));
-            graph.addNode("validate", node_async(validateAgent));
-            graph.addNode("execute", node_async(executeAgent));
-            graph.addNode("replan", node_async(replanAgent));
+            graph.addNode(PLAN.getName(), node_async(planAgent));
+            graph.addNode(VALIDATE.getName(), node_async(validateAgent));
+            graph.addNode(EXECUTE.getName(), node_async(executeAgent));
+            graph.addNode(RE_PLAN.getName(), node_async(replanAgent));
 
             // 3. 添加边
             // START → plan
-            graph.addEdge(START, "plan");
+            graph.addEdge(START, PLAN.getName());
             // plan → validate
-            graph.addEdge("plan", "validate");
+            graph.addEdge(PLAN.getName(), VALIDATE.getName());
 
             // 4. 添加条件边 (validate 的分支)
             // - 可行 → execute
             // - 不可行但可重规划 → replan
             // - 不可行且不可重规划 → END
             graph.addConditionalEdges(
-                    "validate",
+                    VALIDATE.getName(),
                     edge_async(validationEdge),
                     Map.of(
-                            "execute", "execute",
-                            "replan", "replan",
-                            "end", END
+                            EXECUTE.getName(), EXECUTE.getName(),
+                            RE_PLAN.getName(), RE_PLAN.getName(),
+                            NodeActionEnum.END.getName(), END
                     )
             );
 
             // 5. 完成边
             // execute → END
-            graph.addEdge("execute", END);
+            graph.addEdge(EXECUTE.getName(), END);
             // replan → validate (重新规划后直接验证，不需要重新制定计划)
-            graph.addEdge("replan", "validate");
+            graph.addEdge(RE_PLAN.getName(), VALIDATE.getName());
 
             log.info("=== Plan-Execute StateGraph 创建完成 ===");
 

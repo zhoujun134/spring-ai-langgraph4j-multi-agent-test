@@ -37,7 +37,14 @@ public class ValidateAgent implements NodeAction<PlanExecuteState> {
 
         List<String> issues = new ArrayList<>();
 
-        // 1. 检查是否有计划
+        // 1. 检查是否任务已经结束
+        if (state.hasFinalAnswer()) {
+            issues.add("没有可执行的计划");
+            state.setValidationResult("计划为空，无法执行");
+            state.setPlanFeasible(false);
+            return state.toMap();
+        }
+        // 2. 检查是否有计划
         if (!state.hasPlan()) {
             issues.add("没有可执行的计划");
             state.setValidationResult("计划为空，无法执行");
@@ -45,12 +52,12 @@ public class ValidateAgent implements NodeAction<PlanExecuteState> {
             return state.toMap();
         }
 
-        // 2. 获取可用工具列表
+        // 3. 获取可用工具列表
         List<String> availableTools = toolRegistry.getToolNames();
         log.info("可用工具列表: {}", availableTools);
 
         // 3. 检查每个步骤的工具是否可用
-        for (PlanStep step : state.getPlan()) {
+        for (PlanStep step : state.getPlanSteps()) {
             String toolName = step.getToolName();
 
             // 检查工具名是否为空

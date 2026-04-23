@@ -60,7 +60,7 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
         List<PlanStep> newSteps = parsePlanSteps(planResponse);
 
         // 5. 更新状态
-        state.setPlan(newSteps);
+        state.setPlanSteps(newSteps);
         state.setPlanFeasible(false); // 重置为 false，等待重新验证
 
         log.info("新计划步骤数: {}", newSteps.size());
@@ -86,7 +86,7 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
         // 构建原计划描述
         StringBuilder originalPlan = new StringBuilder();
         if (state.hasPlan()) {
-            for (PlanStep step : state.getPlan()) {
+            for (PlanStep step : state.getPlanSteps()) {
                 originalPlan.append(String.format("%d. %s (工具: %s)\n",
                         step.getStepIndex(), step.getDescription(), step.getToolName()));
             }

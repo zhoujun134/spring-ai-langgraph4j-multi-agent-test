@@ -2,6 +2,7 @@ package com.zj.ai.langgraph4j.config;
 
 import com.zj.ai.common.sdk.dotenv.DotEnvUtils;
 import com.zj.ai.common.sdk.json.JSONUtils;
+import com.zj.ai.langgraph4j.domain.constants.AiProviderEnum;
 import com.zj.ai.langgraph4j.domain.entity.ModelConfigEntity;
 import com.zj.ai.langgraph4j.domain.entity.ToolConfigEntity;
 import com.zj.ai.langgraph4j.repository.ModelConfigRepository;
@@ -50,24 +51,26 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("初始化模型配置...");
 
-        // 从环境变量获取 Ollama 配置
-        String ollamaBaseUrl = DotEnvUtils.getDotEnvValue("OLLAMA_BASE_URL");
-        String ollamaModel = DotEnvUtils.getDotEnvValue("OLLAMA_CHAT_MODEL");
-        log.info("ollamaBaseUrl: {}, ollamaModel:{}", ollamaBaseUrl, ollamaModel);
+        // 从环境变量获取配置
+        String baseUrl = DotEnvUtils.getDotEnvValue("CHAT_BASE_URL");
+        String modelId = DotEnvUtils.getDotEnvValue("CHAT_MODEL");
+        String apiKey = DotEnvUtils.getDotEnvValue("CHAT_API_KEY");
+        log.info("baseUrl: {}, modelId: {}, apiKey: {}", baseUrl, modelId, apiKey != null ? "***" : null);
 
-        // 创建 Ollama 模型配置
-        ModelConfigEntity ollamaConfig = new ModelConfigEntity();
-        ollamaConfig.setModelName("gemma4");
-        ollamaConfig.setProvider("ollama");
-        ollamaConfig.setBaseUrl(ollamaBaseUrl != null ? ollamaBaseUrl : "http://localhost:11434");
-        ollamaConfig.setModelId(ollamaModel != null ? ollamaModel : "gemma4-26b-q3");
-        ollamaConfig.setTemperature(0.7);
-        ollamaConfig.setMaxTokens(64000);
-        ollamaConfig.setEnabled(true);
-        ollamaConfig.setIsDefault(true);
+        // 创建模型配置
+        ModelConfigEntity config = new ModelConfigEntity();
+        config.setModelName(modelId);
+        config.setProvider(AiProviderEnum.OPENAI.getProvider());
+        config.setBaseUrl(baseUrl);
+        config.setApiKey(apiKey);
+        config.setModelId(modelId);
+        config.setTemperature(0.7);
+        config.setMaxTokens(60000);
+        config.setEnabled(true);
+        config.setIsDefault(true);
 
-        modelConfigRepository.save(ollamaConfig);
-        log.info("已创建 Ollama 模型配置: {}", JSONUtils.toJSONString(ollamaConfig));
+        modelConfigRepository.save(config);
+        log.info("已创建模型配置: {}", JSONUtils.toJSONString(config));
     }
 
     /**

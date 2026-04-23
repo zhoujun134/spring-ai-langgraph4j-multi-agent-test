@@ -20,20 +20,20 @@ import java.time.Duration;
  **/
 @Slf4j
 public class ChatModelLoader {
-    private final static String ollamaBaseUrl = DotEnvUtils.getDotEnvValue("OLLAMA_BASE_URL");
-    private final static  String ollamaChatModel = DotEnvUtils.getDotEnvValue("OLLAMA_CHAT_MODEL");
-    private final static  String ollamaApiKey = DotEnvUtils.getDotEnvValue("OLLAMA_API_KEY");
+    private final static String baseUrl = DotEnvUtils.getDotEnvValue("CHAT_BASE_URL");
+    private final static String chatModel = DotEnvUtils.getDotEnvValue("CHAT_MODEL");
+    private final static String apiKey = DotEnvUtils.getDotEnvValue("CHAT_API_KEY");
     private static final String logRequestString = DotEnvUtils.getDotEnvValueOrDefault("LANGCHAIN_CHAT_LOG_REQUEST", "false");
     private static final String logResponseString = DotEnvUtils.getDotEnvValueOrDefault("LANGCHAIN_CHAT_LOG_RESPONSE", "false");
     private static final boolean logRequest = BooleanUtils.toBoolean(logRequestString);
     private static final boolean logResponse = BooleanUtils.toBoolean(logResponseString);
 
     public static ChatModel loadSyncOpenaiChatModel() {
-        log.info("系统环境变量配置为: ollamaBaseUrl:{}, ollamaChatModel:{}, ollamaApiKey:{}," + "logRequest:{}, logResponse: {}", ollamaBaseUrl, ollamaChatModel, ollamaApiKey, logRequest, logResponse);
+        log.info("系统环境变量配置为: baseUrl:{}, chatModel:{}, apiKey:{}," + "logRequest:{}, logResponse: {}", baseUrl, chatModel, apiKey != null ? "***" : null, logRequest, logResponse);
         return OpenAiChatModel.builder()
-                .apiKey(ollamaApiKey)
-                .modelName(ollamaChatModel)
-                .baseUrl(ollamaBaseUrl + "/v1")
+                .apiKey(apiKey)
+                .modelName(chatModel)
+                .baseUrl(baseUrl)
                 .timeout(Duration.ofMinutes(10))
                 .logRequests(logRequest)
                 .logResponses(logResponse)
@@ -44,27 +44,24 @@ public class ChatModelLoader {
     }
 
     public static StreamingChatModel loadAsyncOpenaiChatModel() {
-        log.info("系统环境变量配置为: ollamaBaseUrl:{}, ollamaChatModel:{}, ollamaApiKey:{}," + "logRequest:{}, logResponse: {}", ollamaBaseUrl, ollamaChatModel, ollamaApiKey, logRequest, logResponse);
+        log.info("系统环境变量配置为: baseUrl:{}, chatModel:{}, apiKey:{}," + "logRequest:{}, logResponse: {}", baseUrl, chatModel, apiKey != null ? "***" : null, logRequest, logResponse);
         return OpenAiStreamingChatModel.builder()
-                .apiKey(ollamaApiKey)
-                .modelName(ollamaChatModel)
-                .baseUrl(ollamaBaseUrl + "/v1")
+                .apiKey(apiKey)
+                .modelName(chatModel)
+                .baseUrl(baseUrl)
                 .timeout(Duration.ofMinutes(10))
                 .logRequests(logRequest)
                 .logResponses(logResponse)
-                // 移除 returnThinking，Ollama 的 reasoning 字段处理可能有问题
                 .temperature(0.95)
-                .sendThinking(true)
-                .returnThinking(true)
                 .maxTokens(100000)
                 .build();
     }
 
     public static StreamingChatModel loadAsyncOllamaChatModel() {
-        log.info("系统环境变量配置为: ollamaBaseUrl:{}, ollamaChatModel:{}, ollamaApiKey:{}," + "logRequest:{}, logResponse: {}", ollamaBaseUrl, ollamaChatModel, ollamaApiKey, logRequest, logResponse);
+        log.info("系统环境变量配置为: baseUrl:{}, chatModel:{}, apiKey:{}," + "logRequest:{}, logResponse: {}", baseUrl, chatModel, apiKey != null ? "***" : null, logRequest, logResponse);
         return OllamaStreamingChatModel.builder()
-                .modelName(ollamaChatModel)
-                .baseUrl(ollamaBaseUrl)
+                .modelName(chatModel)
+                .baseUrl(baseUrl)
                 .timeout(Duration.ofMinutes(10))
                 .logRequests(logRequest)
                 .logResponses(logResponse)

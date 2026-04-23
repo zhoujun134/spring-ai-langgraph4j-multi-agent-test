@@ -41,7 +41,7 @@ public class ExecuteAgent implements NodeAction<PlanExecuteState> {
         StringBuilder executionLog = new StringBuilder();
 
         // 遍历执行每个步骤
-        for (PlanStep step : state.getPlan()) {
+        for (PlanStep step : state.getPlanSteps()) {
             log.info("执行步骤 {}: {} - 工具: {}", step.getStepIndex(), step.getDescription(), step.getToolName());
 
             // 标记步骤为执行中

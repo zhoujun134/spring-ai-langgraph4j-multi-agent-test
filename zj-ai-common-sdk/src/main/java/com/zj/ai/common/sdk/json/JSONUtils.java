@@ -116,6 +116,17 @@ public class JSONUtils {
         }
     }
 
+    @SuppressWarnings("all")
+    public static <V> V getJsonValue(String json, String key) {
+        try {
+            Map<String, Object> map = parseMap(json);
+            return (V) map.get(key);
+        } catch (Exception e) {
+            log.error("JSONUtils######getJsonValue： error json={}, key={}", json, key, e);
+            return null;
+        }
+    }
+
     public static Map<String, Object> convertToMap(Object data) {
         if (data == null) {
             return Collections.emptyMap();

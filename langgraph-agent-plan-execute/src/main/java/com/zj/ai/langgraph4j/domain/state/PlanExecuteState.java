@@ -5,6 +5,8 @@ import com.zj.ai.langgraph4j.domain.dto.ExecutionResult;
 import com.zj.ai.langgraph4j.domain.dto.PlanStep;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bsc.langgraph4j.state.AgentState;
 
 import java.util.ArrayList;
@@ -35,7 +37,7 @@ public class PlanExecuteState extends AgentState {
     /**
      * 生成的计划步骤
      */
-    private List<PlanStep> plan = new ArrayList<>();
+    private List<PlanStep> planSteps = new ArrayList<>();
 
     /**
      * 当前执行步骤索引
@@ -124,7 +126,7 @@ public class PlanExecuteState extends AgentState {
             data.put("replanCount", rePlanCount);
             data.put("planFeasible", planFeasible);
             data.put("validationResult", validationResult);
-            data.put("plan", plan);
+            data.put("plan", planSteps);
             data.put("completed", completed);
             data.put("finalAnswer", finalAnswer);
             data.put("errorMessage", errorMessage);
@@ -154,10 +156,10 @@ public class PlanExecuteState extends AgentState {
         // 解析计划步骤列表
         Object planObj = data.get("plan");
         if (planObj instanceof List) {
-            this.plan = new ArrayList<>();
+            this.planSteps = new ArrayList<>();
             for (Object item : (List<?>) planObj) {
                 if (item instanceof PlanStep) {
-                    this.plan.add((PlanStep) item);
+                    this.planSteps.add((PlanStep) item);
                 }
             }
         }
@@ -182,7 +184,7 @@ public class PlanExecuteState extends AgentState {
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("userQuery", userQuery);
-        map.put("plan", plan);
+        map.put("plan", planSteps);
         map.put("currentStepIndex", currentStepIndex);
         map.put("validationResult", validationResult);
         map.put("planFeasible", planFeasible);
@@ -202,8 +204,8 @@ public class PlanExecuteState extends AgentState {
     /**
      * 设置计划
      */
-    public PlanExecuteState withPlan(List<PlanStep> plan) {
-        this.plan = plan != null ? plan : new ArrayList<>();
+    public PlanExecuteState withPlanSteps(List<PlanStep> plan) {
+        this.planSteps = plan != null ? plan : new ArrayList<>();
         return this;
     }
 
@@ -258,7 +260,7 @@ public class PlanExecuteState extends AgentState {
      * 是否可以重新规划
      */
     @JsonIgnore
-    public boolean canReplan() {
+    public boolean canRePlan() {
         return rePlanCount < maxRePlanAttempts;
     }
 
@@ -267,8 +269,8 @@ public class PlanExecuteState extends AgentState {
      */
     @JsonIgnore
     public PlanStep getCurrentStep() {
-        if (plan != null && currentStepIndex < plan.size()) {
-            return plan.get(currentStepIndex);
+        if (planSteps != null && currentStepIndex < planSteps.size()) {
+            return planSteps.get(currentStepIndex);
         }
         return null;
     }
@@ -278,6 +280,14 @@ public class PlanExecuteState extends AgentState {
      */
     @JsonIgnore
     public boolean hasPlan() {
-        return plan != null && !plan.isEmpty();
+        return CollectionUtils.isNotEmpty(this.planSteps);
+    }
+
+    /**
+     * 是否有计划
+     */
+    @JsonIgnore
+    public boolean hasFinalAnswer() {
+        return this.completed && StringUtils.isNotBlank(this.finalAnswer);
     }
 }
