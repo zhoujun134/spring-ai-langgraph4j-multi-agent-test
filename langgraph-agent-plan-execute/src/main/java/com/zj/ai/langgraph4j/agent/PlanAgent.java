@@ -57,9 +57,23 @@ public class PlanAgent implements NodeAction<PlanExecuteState> {
 
         log.info("模型返回的计划:\n{}", planResponse);
         // 4. 解析计划步骤
-//        List<PlanStep> steps = parsePlanSteps(planResponse);
         String finalAnswer = JSONUtils.getJsonValue(planResponse, "finalAnswer");
-        List<PlanStep> steps = JSONUtils.getJsonValue(planResponse, "steps");
+        Object stepsObj = JSONUtils.getJsonValue(planResponse, "steps");
+
+        List<PlanStep> steps = new ArrayList<>();
+        if (stepsObj instanceof List<?> stepsList && !stepsList.isEmpty()) {
+            // 将 LinkedHashMap 转换为 PlanStep
+            for (Object item : stepsList) {
+                if (item instanceof Map<?, ?> stepMap) {
+                    int stepIndex = stepMap.get("stepIndex") instanceof Number n ? n.intValue() : steps.size() + 1;
+                    String description = (String) stepMap.get("description");
+                    String toolName = (String) stepMap.get("toolName");
+                    String toolInput = (String) stepMap.get("toolInput");
+                    steps.add(new PlanStep(stepIndex, description, toolName, toolInput, null, StepStatus.PENDING));
+                }
+            }
+        }
+
         if (CollectionUtils.isEmpty(steps) && Objects.nonNull(finalAnswer)) {
             state.setFinalAnswer(finalAnswer);
             state.setPlanFeasible(false);
