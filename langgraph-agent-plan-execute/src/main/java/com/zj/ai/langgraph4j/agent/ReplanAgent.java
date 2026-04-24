@@ -63,13 +63,16 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
 
         log.info("模型返回的新计划:\n{}", planResponse);
 
-        // 5. 解析新计划
-        List<PlanStep> newSteps = parsePlanSteps(planResponse);
+        // 5. 清理模型返回（去除 markdown 代码块格式）
+        String cleanedResponse = cleanModelResponse(planResponse);
 
-        // 6. 检查新计划是否为空
+        // 6. 解析新计划
+        List<PlanStep> newSteps = parsePlanSteps(cleanedResponse);
+
+        // 7. 检查新计划是否为空
         if (newSteps.isEmpty()) {
             log.warn("新计划为空，尝试给出直接回答");
-            String finalAnswer = JSONUtils.getJsonValue(planResponse, "finalAnswer");
+            String finalAnswer = JSONUtils.getJsonValue(cleanedResponse, "finalAnswer");
             if (finalAnswer != null && !finalAnswer.isEmpty()) {
                 state.setFinalAnswer(finalAnswer);
                 state.setCompleted(true);
@@ -80,7 +83,7 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
             return state.toMap();
         }
 
-        // 7. 更新状态
+        // 8. 更新状态
         state.setPlanSteps(newSteps);
         state.setNeedReplan(false);
         // 不设置 planFeasible，让 ValidateAgent 来判断
@@ -205,6 +208,30 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
         }
 
         return context.toString();
+    }
+
+    /**
+     * 清理模型返回的响应（去除 markdown 代码块格式）
+     */
+    private String cleanModelResponse(String response) {
+        if (response == null || response.isEmpty()) {
+            return response;
+        }
+
+        String trimmed = response.trim();
+
+        // 去除 ```json ... ``` 或 ``` ... ``` 格式
+        if (trimmed.startsWith("```json")) {
+            trimmed = trimmed.substring(7);
+        } else if (trimmed.startsWith("```")) {
+            trimmed = trimmed.substring(3);
+        }
+
+        if (trimmed.endsWith("```")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 3);
+        }
+
+        return trimmed.trim();
     }
 
     /**

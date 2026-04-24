@@ -52,9 +52,12 @@ public class PlanAgent implements NodeAction<PlanExecuteState> {
 
         log.info("模型返回的计划:\n{}", planResponse);
 
-        // 4. 解析计划步骤和最终答案
-        String finalAnswer = JSONUtils.getJsonValue(planResponse, "finalAnswer");
-        Object stepsObj = JSONUtils.getJsonValue(planResponse, "steps");
+        // 4. 清理模型返回（去除 markdown 代码块格式）
+        String cleanedResponse = cleanModelResponse(planResponse);
+
+        // 5. 解析计划步骤和最终答案
+        String finalAnswer = JSONUtils.getJsonValue(cleanedResponse, "finalAnswer");
+        Object stepsObj = JSONUtils.getJsonValue(cleanedResponse, "steps");
 
         List<PlanStep> steps = new ArrayList<>();
         if (stepsObj instanceof List<?> stepsList && !stepsList.isEmpty()) {
@@ -69,7 +72,7 @@ public class PlanAgent implements NodeAction<PlanExecuteState> {
             }
         }
 
-        // 5. 决策逻辑：优先使用直接答案
+        // 6. 决策逻辑：优先使用直接答案
         boolean hasDirectAnswer = isDirectAnswer(finalAnswer, steps);
 
         if (hasDirectAnswer) {
@@ -101,6 +104,30 @@ public class PlanAgent implements NodeAction<PlanExecuteState> {
         state.setPlanSteps(Collections.emptyList());
         state.setCompleted(true);
         return state.toMap();
+    }
+
+    /**
+     * 清理模型返回的响应（去除 markdown 代码块格式）
+     */
+    private String cleanModelResponse(String response) {
+        if (response == null || response.isEmpty()) {
+            return response;
+        }
+
+        String trimmed = response.trim();
+
+        // 去除 ```json ... ``` 或 ``` ... ``` 格式
+        if (trimmed.startsWith("```json")) {
+            trimmed = trimmed.substring(7); // 去除 ```json
+        } else if (trimmed.startsWith("```")) {
+            trimmed = trimmed.substring(3); // 去除 ```
+        }
+
+        if (trimmed.endsWith("```")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 3); // 去除结尾的 ```
+        }
+
+        return trimmed.trim();
     }
 
     /**
