@@ -5,6 +5,7 @@ import com.zj.ai.langgraph4j.agent.PlanAgent;
 import com.zj.ai.langgraph4j.agent.ReplanAgent;
 import com.zj.ai.langgraph4j.agent.ValidateAgent;
 import com.zj.ai.langgraph4j.agent.action.NodeActionEnum;
+import com.zj.ai.langgraph4j.agent.edge.ExecutionEdge;
 import com.zj.ai.langgraph4j.agent.edge.PlanValidationEdge;
 import com.zj.ai.langgraph4j.domain.state.PlanExecuteState;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +29,21 @@ import static org.bsc.langgraph4j.action.AsyncNodeAction.node_async;
  * 定义完整的状态图工作流
  *
  * 工作流程:
- * START → plan → validate → [条件边] → execute → END
+ * START → plan → validate → [条件边] → execute → [条件边] → END
+ *                           ↓                ↓
+ *                       replan ←────────────┘
  *                           ↓
- *                       replan → validate (重新验证新计划)
+ *                       validate (重新验证新计划)
+ *
+ * 条件边决策逻辑:
+ * - PlanValidationEdge: 验证通过 → execute, 失败但可重规划 → replan, 其他 → END
+ * - ExecutionEdge: 完成或部分成功 → END, 失败且可重规划 → replan, 其他 → END
+ *
+ * 防死循环机制:
+ * - 最大重规划次数限制 (maxRePlanAttempts)
+ * - 连续失败次数追踪 (consecutiveValidationFailures, consecutiveExecutionFailures)
+ * - 重复计划检测 (lastPlanHash)
+ * - 最大失败阈值检测 (hasExceededMaxFailures)
  *
  * @author zj
  * @date 2026/04/12
@@ -49,6 +62,7 @@ public class PlanExecuteWorkflowConfig {
             ExecuteAgent executeAgent,
             ReplanAgent replanAgent,
             PlanValidationEdge validationEdge,
+            ExecutionEdge executionEdge,
             PlanExecuteStateFactory stateFactory) {
 
         log.info("=== 创建 Plan-Execute StateGraph ===");
@@ -69,10 +83,10 @@ public class PlanExecuteWorkflowConfig {
             // plan → validate
             graph.addEdge(PLAN.getName(), VALIDATE.getName());
 
-            // 4. 添加条件边 (validate 的分支)
+            // 4. 添加验证条件边
             // - 可行 → execute
             // - 不可行但可重规划 → replan
-            // - 不可行且不可重规划 → END
+            // - 其他情况 → END
             graph.addConditionalEdges(
                     VALIDATE.getName(),
                     edge_async(validationEdge),
@@ -83,10 +97,19 @@ public class PlanExecuteWorkflowConfig {
                     )
             );
 
-            // 5. 完成边
-            // execute → END
-            graph.addEdge(EXECUTE.getName(), END);
-            // replan → validate (重新规划后直接验证，不需要重新制定计划)
+            // 5. 添加执行条件边
+            // - 完成 → END
+            // - 需要重规划 → replan
+            graph.addConditionalEdges(
+                    EXECUTE.getName(),
+                    edge_async(executionEdge),
+                    Map.of(
+                            NodeActionEnum.END.getName(), END,
+                            RE_PLAN.getName(), RE_PLAN.getName()
+                    )
+            );
+
+            // 6. 重规划后重新验证
             graph.addEdge(RE_PLAN.getName(), VALIDATE.getName());
 
             log.info("=== Plan-Execute StateGraph 创建完成 ===");

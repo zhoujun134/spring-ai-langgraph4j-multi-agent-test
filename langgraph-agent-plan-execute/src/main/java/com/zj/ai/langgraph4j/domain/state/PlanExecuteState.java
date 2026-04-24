@@ -100,6 +100,26 @@ public class PlanExecuteState extends AgentState {
      */
     private String errorMessage;
 
+    /**
+     * 连续验证失败次数
+     */
+    private int consecutiveValidationFailures = 0;
+
+    /**
+     * 连续执行失败次数
+     */
+    private int consecutiveExecutionFailures = 0;
+
+    /**
+     * 上次计划哈希值（用于检测重复计划）
+     */
+    private String lastPlanHash;
+
+    /**
+     * 是否需要重新规划（执行失败后）
+     */
+    private boolean needReplan = false;
+
     // ==================== 构造函数 ====================
 
     /**
@@ -152,6 +172,12 @@ public class PlanExecuteState extends AgentState {
         this.errorMessage = (String) data.get("errorMessage");
         this.currentTool = (String) data.get("currentTool");
         this.currentToolInput = (String) data.get("currentToolInput");
+        this.consecutiveValidationFailures = data.get("consecutiveValidationFailures") != null
+                ? (Integer) data.get("consecutiveValidationFailures") : 0;
+        this.consecutiveExecutionFailures = data.get("consecutiveExecutionFailures") != null
+                ? (Integer) data.get("consecutiveExecutionFailures") : 0;
+        this.lastPlanHash = (String) data.get("lastPlanHash");
+        this.needReplan = Boolean.TRUE.equals(data.get("needReplan"));
 
         // 解析计划步骤列表
         Object planObj = data.get("plan");
@@ -196,6 +222,10 @@ public class PlanExecuteState extends AgentState {
         map.put("finalAnswer", finalAnswer);
         map.put("completed", completed);
         map.put("errorMessage", errorMessage);
+        map.put("consecutiveValidationFailures", consecutiveValidationFailures);
+        map.put("consecutiveExecutionFailures", consecutiveExecutionFailures);
+        map.put("lastPlanHash", lastPlanHash);
+        map.put("needReplan", needReplan);
         return map;
     }
 
@@ -289,5 +319,71 @@ public class PlanExecuteState extends AgentState {
     @JsonIgnore
     public boolean hasFinalAnswer() {
         return this.completed && StringUtils.isNotBlank(this.finalAnswer);
+    }
+
+    /**
+     * 增加连续验证失败次数
+     */
+    public void incrementValidationFailure() {
+        this.consecutiveValidationFailures++;
+    }
+
+    /**
+     * 重置连续验证失败次数
+     */
+    public void resetValidationFailures() {
+        this.consecutiveValidationFailures = 0;
+    }
+
+    /**
+     * 增加连续执行失败次数
+     */
+    public void incrementExecutionFailure() {
+        this.consecutiveExecutionFailures++;
+    }
+
+    /**
+     * 重置连续执行失败次数
+     */
+    public void resetExecutionFailures() {
+        this.consecutiveExecutionFailures = 0;
+    }
+
+    /**
+     * 是否达到最大失败阈值
+     */
+    @JsonIgnore
+    public boolean hasExceededMaxFailures() {
+        return consecutiveValidationFailures >= maxRePlanAttempts
+                || consecutiveExecutionFailures >= maxRePlanAttempts;
+    }
+
+    /**
+     * 计算计划哈希值（用于检测重复计划）
+     */
+    public String calculatePlanHash() {
+        if (planSteps == null || planSteps.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (PlanStep step : planSteps) {
+            sb.append(step.getToolName()).append(":").append(step.getToolInput()).append(";");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 检查是否与上次计划相同
+     */
+    public boolean isSameAsLastPlan() {
+        String currentHash = calculatePlanHash();
+        return currentHash.equals(lastPlanHash);
+    }
+
+    /**
+     * 更新计划哈希值
+     */
+    public void updatePlanHash() {
+        this.lastPlanHash = calculatePlanHash();
     }
 }
