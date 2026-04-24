@@ -1,6 +1,5 @@
 package com.zj.ai.langgraph4j.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zj.ai.common.sdk.json.JSONUtils;
 import com.zj.ai.langgraph4j.domain.constants.StepStatus;
 import com.zj.ai.langgraph4j.domain.dto.PlanStep;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 计划制定 Agent
@@ -31,12 +28,10 @@ public class PlanAgent implements NodeAction<PlanExecuteState> {
 
     private final DynamicModelManager modelManager;
     private final ToolRegistryService toolRegistry;
-    private final ObjectMapper objectMapper;
 
     public PlanAgent(DynamicModelManager modelManager, ToolRegistryService toolRegistry) {
         this.modelManager = modelManager;
         this.toolRegistry = toolRegistry;
-        this.objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -141,96 +136,5 @@ public class PlanAgent implements NodeAction<PlanExecuteState> {
 
                 请输出计划:
                 """.formatted(userQuery, toolDescriptions);
-    }
-
-    /**
-     * 解析计划步骤
-     */
-    private List<PlanStep> parsePlanSteps(String planResponse) {
-        List<PlanStep> steps = new ArrayList<>();
-
-        try {
-            // 尝试提取 JSON 部分
-            String jsonContent = extractJson(planResponse);
-
-            if (jsonContent != null) {
-                // 解析 JSON
-                Map<String, Object> planMap = objectMapper.readValue(jsonContent, Map.class);
-
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> stepsList = (List<Map<String, Object>>) planMap.get("steps");
-
-                if (stepsList != null) {
-                    for (Map<String, Object> stepMap : stepsList) {
-                        int stepIndex = ((Number) stepMap.get("stepIndex")).intValue();
-                        String description = (String) stepMap.get("description");
-                        String toolName = (String) stepMap.get("toolName");
-                        String toolInput = (String) stepMap.get("toolInput");
-
-                        steps.add(new PlanStep(stepIndex, description, toolName, toolInput, null, StepStatus.PENDING));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.warn("JSON 解析失败，尝试使用正则表达式解析: {}", e.getMessage());
-            // 使用正则表达式解析
-            steps = parseWithRegex(planResponse);
-        }
-
-        // 如果解析失败，创建一个默认步骤
-        if (steps.isEmpty()) {
-            log.warn("计划解析失败，创建默认搜索步骤");
-            steps.add(PlanStep.pending(1, "搜索相关信息", "search", "默认搜索"));
-        }
-
-        return steps;
-    }
-
-    /**
-     * 提取 JSON 内容
-     */
-    private String extractJson(String text) {
-        // 尝试找到 JSON 块
-        Pattern pattern = Pattern.compile("\\{[\\s\\S]*\\}", Pattern.MULTILINE);
-        Matcher matcher = pattern.matcher(text);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-        return null;
-    }
-
-    /**
-     * 使用正则表达式解析
-     */
-    private List<PlanStep> parseWithRegex(String text) {
-        List<PlanStep> steps = new ArrayList<>();
-
-        // 简单的步骤解析
-        Pattern stepPattern = Pattern.compile("步骤\\s*(\\d+)[:：]\\s*(.+?)(?=步骤|$)", Pattern.DOTALL);
-        Matcher matcher = stepPattern.matcher(text);
-
-        int index = 1;
-        while (matcher.find()) {
-            String description = matcher.group(2).trim();
-            // 尝试提取工具名
-            String toolName = extractToolName(description);
-            steps.add(PlanStep.pending(index++, description, toolName, description));
-        }
-
-        return steps;
-    }
-
-    /**
-     * 从描述中提取工具名
-     */
-    private String extractToolName(String description) {
-        if (description.contains("计算") || description.contains("数学")) {
-            return "calculator";
-        } else if (description.contains("天气")) {
-            return "weather";
-        } else if (description.contains("搜索") || description.contains("查找")) {
-            return "search";
-        }
-        return "search"; // 默认使用搜索
     }
 }

@@ -1,6 +1,13 @@
 package com.zj.ai.langgraph4j.controller;
 
 import com.zj.ai.langgraph4j.domain.state.PlanExecuteState;
+import com.zj.ai.langgraph4j.exception.WorkflowException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.CompiledGraph;
@@ -31,7 +38,7 @@ public class AgentController {
      * @return 执行结果
      */
     @PostMapping("/query")
-    public ResponseEntity<Map<String, Object>> executeQuery(@RequestBody QueryRequest request) {
+    public ResponseEntity<Map<String, Object>> executeQuery(@Valid @RequestBody QueryRequest request) {
         log.info("收到查询请求: {}", request.getQuery());
 
         try {
@@ -42,7 +49,7 @@ public class AgentController {
 
             // 执行工作流
             PlanExecuteState result = planExecuteWorkflow.invoke(state.toMap())
-                    .orElseThrow(() -> new RuntimeException("工作流执行返回空结果"));
+                    .orElseThrow(() -> new WorkflowException("工作流执行返回空结果"));
 
             // 构建响应
             return ResponseEntity.ok(Map.of(
@@ -54,36 +61,36 @@ public class AgentController {
                     "errorMessage", result.getErrorMessage() != null ? result.getErrorMessage() : ""
             ));
 
+        } catch (WorkflowException e) {
+            throw e;
         } catch (Exception e) {
             log.error("查询执行失败", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false,
-                    "error", e.getMessage()
-            ));
+            throw new WorkflowException("查询执行失败: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * 健康检查
+     */
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        return ResponseEntity.ok(Map.of(
+                "status", "UP",
+                "service", "plan-execute-agent"
+        ));
     }
 
     /**
      * 查询请求
      */
+    @Data
     public static class QueryRequest {
+        @NotBlank(message = "查询内容不能为空")
+        @Size(max = 2000, message = "查询内容不能超过2000字符")
         private String query;
+
+        @Min(value = 1, message = "最大重规划次数不能小于1")
+        @Max(value = 10, message = "最大重规划次数不能超过10")
         private Integer maxReplanAttempts;
-
-        public String getQuery() {
-            return query;
-        }
-
-        public void setQuery(String query) {
-            this.query = query;
-        }
-
-        public Integer getMaxReplanAttempts() {
-            return maxReplanAttempts;
-        }
-
-        public void setMaxReplanAttempts(Integer maxReplanAttempts) {
-            this.maxReplanAttempts = maxReplanAttempts;
-        }
     }
 }

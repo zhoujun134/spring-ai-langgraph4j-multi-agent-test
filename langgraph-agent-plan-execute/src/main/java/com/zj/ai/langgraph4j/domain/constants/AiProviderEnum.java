@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * @ClassName AiProviderEnmu
- * @Author zhoujun134
- * @Description
- * @Date 2026/4/23 22:04
- * @Version v1.0
- **/
+ * AI 提供商枚举
+ * 支持的 LLM 提供商类型
+ *
+ * @author zj
+ * @date 2026/04/12
+ */
 @AllArgsConstructor
 @Getter
 public enum AiProviderEnum {
@@ -18,6 +18,9 @@ public enum AiProviderEnum {
 
     OPENAI("openai"),
 
+    DEEPSEEK("deepseek"),
+
     ;
+
     private final String provider;
 }

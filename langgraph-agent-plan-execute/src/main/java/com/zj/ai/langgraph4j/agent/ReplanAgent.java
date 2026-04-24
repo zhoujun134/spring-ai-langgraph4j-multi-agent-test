@@ -1,6 +1,6 @@
 package com.zj.ai.langgraph4j.agent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zj.ai.common.sdk.json.JSONUtils;
 import com.zj.ai.langgraph4j.domain.constants.StepStatus;
 import com.zj.ai.langgraph4j.domain.dto.PlanStep;
 import com.zj.ai.langgraph4j.domain.entity.ToolConfigEntity;
@@ -29,12 +29,10 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
 
     private final DynamicModelManager modelManager;
     private final ToolRegistryService toolRegistry;
-    private final ObjectMapper objectMapper;
 
     public ReplanAgent(DynamicModelManager modelManager, ToolRegistryService toolRegistry) {
         this.modelManager = modelManager;
         this.toolRegistry = toolRegistry;
-        this.objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -143,19 +141,11 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
         List<PlanStep> steps = new ArrayList<>();
 
         try {
-            // 提取 JSON 内容
-            String jsonContent = extractJson(planResponse);
-
-            if (jsonContent != null) {
-                Map<String, Object> planMap = objectMapper.readValue(jsonContent, Map.class);
-
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> stepsList = (List<Map<String, Object>>) planMap.get("steps");
-
-                if (stepsList != null) {
-                    for (Map<String, Object> stepMap : stepsList) {
-                        int stepIndex = stepMap.get("stepIndex") != null ?
-                                ((Number) stepMap.get("stepIndex")).intValue() : steps.size() + 1;
+            Object stepsObj = JSONUtils.getJsonValue(planResponse, "steps");
+            if (stepsObj instanceof List<?> stepsList) {
+                for (Object item : stepsList) {
+                    if (item instanceof Map<?, ?> stepMap) {
+                        int stepIndex = stepMap.get("stepIndex") instanceof Number n ? n.intValue() : steps.size() + 1;
                         String description = (String) stepMap.get("description");
                         String toolName = (String) stepMap.get("toolName");
                         String toolInput = (String) stepMap.get("toolInput");
@@ -170,18 +160,5 @@ public class ReplanAgent implements NodeAction<PlanExecuteState> {
 
         // 如果解析失败，返回空列表
         return steps;
-    }
-
-    /**
-     * 提取 JSON 内容
-     */
-    private String extractJson(String text) {
-        int start = text.indexOf('{');
-        int end = text.lastIndexOf('}');
-
-        if (start >= 0 && end > start) {
-            return text.substring(start, end + 1);
-        }
-        return null;
     }
 }

@@ -2,7 +2,6 @@ package com.zj.ai.langgraph4j.agent;
 
 import com.zj.ai.langgraph4j.domain.dto.PlanStep;
 import com.zj.ai.langgraph4j.domain.state.PlanExecuteState;
-import com.zj.ai.langgraph4j.service.DynamicModelManager;
 import com.zj.ai.langgraph4j.service.ToolRegistryService;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.NodeAction;
@@ -23,11 +22,9 @@ import java.util.Map;
 @Component
 public class ValidateAgent implements NodeAction<PlanExecuteState> {
 
-    private final DynamicModelManager modelManager;
     private final ToolRegistryService toolRegistry;
 
-    public ValidateAgent(DynamicModelManager modelManager, ToolRegistryService toolRegistry) {
-        this.modelManager = modelManager;
+    public ValidateAgent(ToolRegistryService toolRegistry) {
         this.toolRegistry = toolRegistry;
     }
 

@@ -2,6 +2,7 @@ package com.zj.ai.langgraph4j.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zj.ai.langgraph4j.domain.entity.ToolConfigEntity;
+import com.zj.ai.langgraph4j.exception.ToolExecutionException;
 import com.zj.ai.langgraph4j.repository.ToolConfigRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +93,7 @@ public class ToolRegistryService {
         try {
             // 1. 获取工具配置
             ToolConfigEntity config = repository.findByToolName(toolName)
-                    .orElseThrow(() -> new RuntimeException("Tool not found: " + toolName));
+                    .orElseThrow(() -> new ToolExecutionException("Tool not found: " + toolName));
 
             // 2. 获取工具实例
             Object toolInstance = getToolInstance(config);
@@ -107,9 +108,11 @@ public class ToolRegistryService {
             log.info("Tool {} executed successfully, result: {}", toolName, result);
             return result;
 
+        } catch (ToolExecutionException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to execute tool: {}", toolName, e);
-            throw new RuntimeException("Tool execution failed: " + e.getMessage(), e);
+            throw new ToolExecutionException("Tool execution failed: " + e.getMessage(), e);
         }
     }
 
@@ -131,7 +134,7 @@ public class ToolRegistryService {
                             .createBean(clazz);
                 }
             } catch (ClassNotFoundException e) {
-                throw new RuntimeException("Tool class not found: " + config.getClassName(), e);
+                throw new ToolExecutionException("Tool class not found: " + config.getClassName(), e);
             }
         });
     }
@@ -152,11 +155,11 @@ public class ToolRegistryService {
                             return method;
                         }
                     }
-                    throw new RuntimeException("No valid method found for tool: " + config.getToolName());
+                    throw new ToolExecutionException("No valid method found for tool: " + config.getToolName());
                 }
                 return toolInstance.getClass().getMethod(config.getMethodName(), String.class);
             } catch (NoSuchMethodException e) {
-                throw new RuntimeException("Method not found: " + config.getMethodName(), e);
+                throw new ToolExecutionException("Method not found: " + config.getMethodName(), e);
             }
         });
     }

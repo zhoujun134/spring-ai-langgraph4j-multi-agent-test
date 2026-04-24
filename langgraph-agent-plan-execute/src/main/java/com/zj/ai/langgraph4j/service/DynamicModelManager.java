@@ -1,6 +1,7 @@
 package com.zj.ai.langgraph4j.service;
 
 import com.zj.ai.langgraph4j.domain.entity.ModelConfigEntity;
+import com.zj.ai.langgraph4j.exception.ModelConfigException;
 import com.zj.ai.langgraph4j.repository.ModelConfigRepository;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -47,7 +48,7 @@ public class DynamicModelManager {
      */
     public ChatModel getDefaultChatModel() {
         ModelConfigEntity config = repository.findByIsDefaultTrue()
-                .orElseThrow(() -> new RuntimeException("No default model configured"));
+                .orElseThrow(() -> new ModelConfigException("No default model configured"));
         return getChatModel(config.getModelName());
     }
 
@@ -56,7 +57,7 @@ public class DynamicModelManager {
      */
     public StreamingChatModel getDefaultStreamingModel() {
         ModelConfigEntity config = repository.findByIsDefaultTrue()
-                .orElseThrow(() -> new RuntimeException("No default model configured"));
+                .orElseThrow(() -> new ModelConfigException("No default model configured"));
         return getStreamingModel(config.getModelName());
     }
 
@@ -66,7 +67,7 @@ public class DynamicModelManager {
     public ChatModel getChatModel(String modelName) {
         return chatModelCache.computeIfAbsent(modelName, name -> {
             ModelConfigEntity config = repository.findByModelName(name)
-                    .orElseThrow(() -> new RuntimeException("Model not found: " + name));
+                    .orElseThrow(() -> new ModelConfigException("Model not found: " + name));
             return createChatModel(config);
         });
     }
@@ -77,7 +78,7 @@ public class DynamicModelManager {
     public StreamingChatModel getStreamingModel(String modelName) {
         return streamingModelCache.computeIfAbsent(modelName, name -> {
             ModelConfigEntity config = repository.findByModelName(name)
-                    .orElseThrow(() -> new RuntimeException("Model not found: " + name));
+                    .orElseThrow(() -> new ModelConfigException("Model not found: " + name));
             return createStreamingModel(config);
         });
     }
@@ -93,7 +94,8 @@ public class DynamicModelManager {
         return switch (config.getProvider().toLowerCase()) {
             case "ollama" -> createOllamaChatModel(config);
             case "openai" -> createOpenAiChatModel(config);
-            default -> throw new RuntimeException("Unknown provider: " + config.getProvider());
+            case "deepseek" -> createDeepSeekChatModel(config);
+            default -> throw new ModelConfigException("Unknown provider: " + config.getProvider());
         };
     }
 
@@ -106,7 +108,8 @@ public class DynamicModelManager {
         return switch (config.getProvider().toLowerCase()) {
             case "ollama" -> createOllamaStreamingModel(config);
             case "openai" -> createOpenAiStreamingModel(config);
-            default -> throw new RuntimeException("Unknown provider: " + config.getProvider());
+            case "deepseek" -> createDeepSeekStreamingModel(config);
+            default -> throw new ModelConfigException("Unknown provider: " + config.getProvider());
         };
     }
 
@@ -155,6 +158,32 @@ public class DynamicModelManager {
                 .timeout(Duration.ofMinutes(10))
                 .returnThinking(true)
                 .customQueryParams(Map.of("enable_thinking", "true"))
+                .build();
+    }
+
+    // ==================== DeepSeek 模型创建 ====================
+
+    private OpenAiChatModel createDeepSeekChatModel(ModelConfigEntity config) {
+        String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://api.deepseek.com";
+        return OpenAiChatModel.builder()
+                .baseUrl(baseUrl)
+                .apiKey(config.getApiKey())
+                .modelName(config.getModelId())
+                .temperature(config.getTemperature() != null ? config.getTemperature() : 0.7)
+                .maxTokens(config.getMaxTokens() != null ? config.getMaxTokens() : 8000)
+                .timeout(Duration.ofMinutes(10))
+                .build();
+    }
+
+    private OpenAiStreamingChatModel createDeepSeekStreamingModel(ModelConfigEntity config) {
+        String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://api.deepseek.com";
+        return OpenAiStreamingChatModel.builder()
+                .baseUrl(baseUrl)
+                .apiKey(config.getApiKey())
+                .modelName(config.getModelId())
+                .temperature(config.getTemperature() != null ? config.getTemperature() : 0.7)
+                .maxTokens(config.getMaxTokens() != null ? config.getMaxTokens() : 8000)
+                .timeout(Duration.ofMinutes(10))
                 .build();
     }
 
