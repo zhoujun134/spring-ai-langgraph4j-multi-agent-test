@@ -162,7 +162,13 @@ public class PlanExecuteState extends AgentState {
     public void syncFromData() {
         Map<String, Object> data = this.data();
         if (data != null && !data.isEmpty()) {
+            // 调试：打印内部 data Map 的内容
+            System.out.println("=== syncFromData debug ===");
+            System.out.println("data keys: " + data.keySet());
+            System.out.println("plan value: " + data.get("plan"));
+            System.out.println("plan class: " + (data.get("plan") != null ? data.get("plan").getClass() : "null"));
             parseFromMap(data);
+            System.out.println("After parse, planSteps size: " + (planSteps != null ? planSteps.size() : "null"));
         }
     }
 
