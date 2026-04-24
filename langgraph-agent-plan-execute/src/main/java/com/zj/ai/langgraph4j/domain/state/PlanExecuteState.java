@@ -157,6 +157,16 @@ public class PlanExecuteState extends AgentState {
     // ==================== 解析方法 ====================
 
     /**
+     * 从内部 data Map 同步字段（用于节点间状态传递后重新同步）
+     */
+    public void syncFromData() {
+        Map<String, Object> data = this.data();
+        if (data != null && !data.isEmpty()) {
+            parseFromMap(data);
+        }
+    }
+
+    /**
      * 从 Map 解析字段
      */
     @SuppressWarnings("unchecked")

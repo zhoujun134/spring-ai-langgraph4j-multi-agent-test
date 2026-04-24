@@ -34,6 +34,11 @@ public class ValidateAgent implements NodeAction<PlanExecuteState> {
     public Map<String, Object> apply(PlanExecuteState state) throws Exception {
         log.info("=== ValidateAgent: 开始验证计划 ===");
 
+        // 重要：从内部 data Map 重新同步字段状态
+        // LangGraph4j 在节点间传递状态时，会更新内部的 data Map
+        // 但 PlanExecuteState 的字段可能没有同步
+        state.syncFromData();
+
         List<String> issues = new ArrayList<>();
 
         // 1. 检查是否任务已经结束（PlanAgent 直接给出了答案）
@@ -46,6 +51,7 @@ public class ValidateAgent implements NodeAction<PlanExecuteState> {
         }
 
         // 2. 检查是否有计划
+        log.info("计划步骤数: {}", state.getPlanSteps() != null ? state.getPlanSteps().size() : 0);
         if (!state.hasPlan()) {
             log.warn("没有可执行的计划");
             state.setValidationResult("计划为空，无法执行");
