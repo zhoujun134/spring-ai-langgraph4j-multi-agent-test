@@ -162,13 +162,7 @@ public class PlanExecuteState extends AgentState {
     public void syncFromData() {
         Map<String, Object> data = this.data();
         if (data != null && !data.isEmpty()) {
-            // 调试：打印内部 data Map 的内容
-            System.out.println("=== syncFromData debug ===");
-            System.out.println("data keys: " + data.keySet());
-            System.out.println("plan value: " + data.get("plan"));
-            System.out.println("plan class: " + (data.get("plan") != null ? data.get("plan").getClass() : "null"));
             parseFromMap(data);
-            System.out.println("After parse, planSteps size: " + (planSteps != null ? planSteps.size() : "null"));
         }
     }
 
@@ -197,31 +191,54 @@ public class PlanExecuteState extends AgentState {
 
         // 解析计划步骤列表
         Object planObj = data.get("plan");
-        if (planObj instanceof List) {
-            this.planSteps = new ArrayList<>();
-            for (Object item : (List<?>) planObj) {
-                if (item instanceof PlanStep) {
-                    this.planSteps.add((PlanStep) item);
-                } else if (item instanceof Map) {
-                    // 从 Map 反序列化（LangGraph4j 内部状态传递）
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> stepMap = (Map<String, Object>) item;
-                    PlanStep step = new PlanStep();
-                    step.setStepIndex(stepMap.get("stepIndex") instanceof Number n ? n.intValue() : 1);
-                    step.setDescription((String) stepMap.get("description"));
-                    step.setToolName((String) stepMap.get("toolName"));
-                    step.setToolInput((String) stepMap.get("toolInput"));
-                    step.setResult(stepMap.get("result"));
-                    String statusStr = (String) stepMap.get("status");
-                    if (statusStr != null) {
-                        try {
-                            step.setStatus(com.zj.ai.langgraph4j.domain.constants.StepStatus.valueOf(statusStr));
-                        } catch (IllegalArgumentException ignored) {
-                            step.setStatus(com.zj.ai.langgraph4j.domain.constants.StepStatus.PENDING);
+        if (planObj instanceof List<?> list) {
+            // 如果 List 不为空，检查第一个元素的类型
+            if (!list.isEmpty()) {
+                Object firstItem = list.get(0);
+                if (firstItem instanceof PlanStep) {
+                    // 已经是 PlanStep 对象列表，直接使用
+                    this.planSteps = new ArrayList<>();
+                    for (Object item : list) {
+                        if (item instanceof PlanStep) {
+                            this.planSteps.add((PlanStep) item);
                         }
                     }
-                    this.planSteps.add(step);
+                } else if (firstItem instanceof Map) {
+                    // 是 Map 列表，需要转换
+                    this.planSteps = new ArrayList<>();
+                    for (Object item : list) {
+                        if (item instanceof Map) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> stepMap = (Map<String, Object>) item;
+                            PlanStep step = new PlanStep();
+                            step.setStepIndex(stepMap.get("stepIndex") instanceof Number n ? n.intValue() : 1);
+                            step.setDescription((String) stepMap.get("description"));
+                            step.setToolName((String) stepMap.get("toolName"));
+                            step.setToolInput((String) stepMap.get("toolInput"));
+                            step.setResult(stepMap.get("result"));
+                            String statusStr = (String) stepMap.get("status");
+                            if (statusStr != null) {
+                                try {
+                                    step.setStatus(com.zj.ai.langgraph4j.domain.constants.StepStatus.valueOf(statusStr));
+                                } catch (IllegalArgumentException ignored) {
+                                    step.setStatus(com.zj.ai.langgraph4j.domain.constants.StepStatus.PENDING);
+                                }
+                            }
+                            this.planSteps.add(step);
+                        }
+                    }
+                } else {
+                    // 尝试直接强转（处理类加载器不同的情况）
+                    try {
+                        @SuppressWarnings("unchecked")
+                        List<PlanStep> castedList = (List<PlanStep>) planObj;
+                        this.planSteps = new ArrayList<>(castedList);
+                    } catch (ClassCastException e) {
+                        this.planSteps = new ArrayList<>();
+                    }
                 }
+            } else {
+                this.planSteps = new ArrayList<>();
             }
         }
 
