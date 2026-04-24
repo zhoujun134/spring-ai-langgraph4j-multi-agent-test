@@ -228,13 +228,13 @@ public class PlanExecuteState extends AgentState {
                         }
                     }
                 } else {
-                    // 尝试直接强转（处理类加载器不同的情况）
-                    try {
-                        @SuppressWarnings("unchecked")
-                        List<PlanStep> castedList = (List<PlanStep>) planObj;
-                        this.planSteps = new ArrayList<>(castedList);
-                    } catch (ClassCastException e) {
-                        this.planSteps = new ArrayList<>();
+                    // 类加载器不同的情况，使用反射创建新的 PlanStep
+                    this.planSteps = new ArrayList<>();
+                    for (Object item : list) {
+                        PlanStep step = createPlanStepFromObject(item);
+                        if (step != null) {
+                            this.planSteps.add(step);
+                        }
                     }
                 }
             } else {
@@ -423,16 +423,90 @@ public class PlanExecuteState extends AgentState {
 
     /**
      * 计算计划哈希值（用于检测重复计划）
+     * 使用反射避免 Spring Boot DevTools 类加载器冲突
      */
     public String calculatePlanHash() {
         if (planSteps == null || planSteps.isEmpty()) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
-        for (PlanStep step : planSteps) {
-            sb.append(step.getToolName()).append(":").append(step.getToolInput()).append(";");
+        try {
+            for (Object step : planSteps) {
+                // 使用反射获取属性，避免类加载器冲突
+                String toolName = getStepProperty(step, "toolName");
+                String toolInput = getStepProperty(step, "toolInput");
+                sb.append(toolName).append(":").append(toolInput).append(";");
+            }
+        } catch (Exception e) {
+            // 如果反射失败，返回空字符串
+            return "";
         }
         return sb.toString();
+    }
+
+    /**
+     * 使用反射获取步骤属性（避免类加载器冲突）
+     */
+    private String getStepProperty(Object step, String propertyName) {
+        try {
+            // 先尝试直接转换（正常情况下）
+            if (step instanceof PlanStep) {
+                PlanStep planStep = (PlanStep) step;
+                if ("toolName".equals(propertyName)) {
+                    return planStep.getToolName();
+                } else if ("toolInput".equals(propertyName)) {
+                    return planStep.getToolInput();
+                }
+            }
+            // 使用反射作为备选方案
+            java.lang.reflect.Method getter = step.getClass().getMethod(
+                    "get" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1));
+            Object result = getter.invoke(step);
+            return result != null ? result.toString() : "";
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /**
+     * 使用反射从对象创建 PlanStep（处理类加载器冲突）
+     */
+    private PlanStep createPlanStepFromObject(Object obj) {
+        try {
+            Class<?> clazz = obj.getClass();
+            java.lang.reflect.Method getIndexMethod = clazz.getMethod("getStepIndex");
+            java.lang.reflect.Method getDescMethod = clazz.getMethod("getDescription");
+            java.lang.reflect.Method getToolMethod = clazz.getMethod("getToolName");
+            java.lang.reflect.Method getInputMethod = clazz.getMethod("getToolInput");
+            java.lang.reflect.Method getResultMethod = clazz.getMethod("getResult");
+            java.lang.reflect.Method getStatusMethod = clazz.getMethod("getStatus");
+
+            int stepIndex = 1;
+            Object indexObj = getIndexMethod.invoke(obj);
+            if (indexObj instanceof Number) {
+                stepIndex = ((Number) indexObj).intValue();
+            }
+
+            PlanStep step = new PlanStep();
+            step.setStepIndex(stepIndex);
+            step.setDescription((String) getDescMethod.invoke(obj));
+            step.setToolName((String) getToolMethod.invoke(obj));
+            step.setToolInput((String) getInputMethod.invoke(obj));
+            step.setResult(getResultMethod.invoke(obj));
+
+            Object statusObj = getStatusMethod.invoke(obj);
+            if (statusObj != null) {
+                try {
+                    step.setStatus(com.zj.ai.langgraph4j.domain.constants.StepStatus.valueOf(statusObj.toString()));
+                } catch (IllegalArgumentException ignored) {
+                    step.setStatus(com.zj.ai.langgraph4j.domain.constants.StepStatus.PENDING);
+                }
+            }
+
+            return step;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
