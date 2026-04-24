@@ -14,6 +14,7 @@ import org.bsc.langgraph4j.CompiledGraph;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -52,14 +53,14 @@ public class AgentController {
                     .orElseThrow(() -> new WorkflowException("工作流执行返回空结果"));
 
             // 构建响应
-            return ResponseEntity.ok(Map.of(
-                    "success", result.isCompleted(),
-                    "query", request.getQuery(),
-                    "plan", result.getPlanSteps(),
-                    "executionResults", result.getExecutionResults(),
-                    "finalAnswer", result.getFinalAnswer(),
-                    "errorMessage", result.getErrorMessage() != null ? result.getErrorMessage() : ""
-            ));
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", result.isCompleted());
+            response.put("query", request.getQuery());
+            response.put("plan", result.getPlanSteps());
+            response.put("executionResults", result.getExecutionResults());
+            response.put("finalAnswer", result.getFinalAnswer() != null ? result.getFinalAnswer() : "");
+            response.put("errorMessage", result.getErrorMessage() != null ? result.getErrorMessage() : "");
+            return ResponseEntity.ok(response);
 
         } catch (WorkflowException e) {
             throw e;
@@ -74,10 +75,10 @@ public class AgentController {
      */
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
-        return ResponseEntity.ok(Map.of(
-                "status", "UP",
-                "service", "plan-execute-agent"
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("service", "plan-execute-agent");
+        return ResponseEntity.ok(response);
     }
 
     /**

@@ -186,6 +186,25 @@ public class PlanExecuteState extends AgentState {
             for (Object item : (List<?>) planObj) {
                 if (item instanceof PlanStep) {
                     this.planSteps.add((PlanStep) item);
+                } else if (item instanceof Map) {
+                    // 从 Map 反序列化（LangGraph4j 内部状态传递）
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> stepMap = (Map<String, Object>) item;
+                    PlanStep step = new PlanStep();
+                    step.setStepIndex(stepMap.get("stepIndex") instanceof Number n ? n.intValue() : 1);
+                    step.setDescription((String) stepMap.get("description"));
+                    step.setToolName((String) stepMap.get("toolName"));
+                    step.setToolInput((String) stepMap.get("toolInput"));
+                    step.setResult(stepMap.get("result"));
+                    String statusStr = (String) stepMap.get("status");
+                    if (statusStr != null) {
+                        try {
+                            step.setStatus(com.zj.ai.langgraph4j.domain.constants.StepStatus.valueOf(statusStr));
+                        } catch (IllegalArgumentException ignored) {
+                            step.setStatus(com.zj.ai.langgraph4j.domain.constants.StepStatus.PENDING);
+                        }
+                    }
+                    this.planSteps.add(step);
                 }
             }
         }
@@ -197,6 +216,17 @@ public class PlanExecuteState extends AgentState {
             for (Object item : (List<?>) resultsObj) {
                 if (item instanceof ExecutionResult) {
                     this.executionResults.add((ExecutionResult) item);
+                } else if (item instanceof Map) {
+                    // 从 Map 反序列化
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> resultMap = (Map<String, Object>) item;
+                    int stepIndex = resultMap.get("stepIndex") instanceof Number n ? n.intValue() : 0;
+                    String toolName = (String) resultMap.get("toolName");
+                    Object result = resultMap.get("result");
+                    boolean success = Boolean.TRUE.equals(resultMap.get("success"));
+                    String errorMessage = (String) resultMap.get("errorMessage");
+                    ExecutionResult execResult = new ExecutionResult(stepIndex, toolName, result, success, errorMessage);
+                    this.executionResults.add(execResult);
                 }
             }
         }
