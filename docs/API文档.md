@@ -117,6 +117,77 @@
 
 ---
 
+### 2.3 流式执行查询（新增）
+
+**接口描述**: 通过 Server-Sent Events (SSE) 流式推送工作流执行进度，支持实时显示每个步骤的执行状态。
+
+**请求方式**: `GET`
+
+**请求路径**: `/stream`
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| query | String | 是 | 用户查询内容（URL 编码） |
+| maxReplan | Integer | 否 | 最大重规划次数，默认3 |
+
+**响应格式**: `text/event-stream`
+
+**事件类型**:
+
+| 事件类型 | 说明 | 数据字段 |
+|----------|------|----------|
+| WORKFLOW_STARTED | 工作流开始 | query, startTime |
+| PLAN_CREATED | 计划生成完成 | steps, totalSteps |
+| VALIDATION_COMPLETE | 验证完成 | feasible |
+| STEP_STARTED | 步骤开始执行 | stepIndex, toolName |
+| STEP_COMPLETED | 步骤执行成功 | stepIndex, toolName, result |
+| STEP_FAILED | 步骤执行失败 | stepIndex, toolName, error |
+| REPLAN_TRIGGERED | 触发重规划 | message |
+| WORKFLOW_COMPLETE | 工作流完成 | success, finalAnswer, duration |
+| ERROR | 执行错误 | message |
+
+**响应示例**:
+
+```
+event: WORKFLOW_STARTED
+data: {"eventType":"WORKFLOW_STARTED","node":"workflow","message":"开始执行工作流","data":{"query":"计算123+456","startTime":1713955200000},"timestamp":1713955200000}
+
+event: PLAN_CREATED
+data: {"eventType":"PLAN_CREATED","node":"plan","message":"计划生成完成，共 1 个步骤","data":{"steps":[...],"totalSteps":1},"timestamp":1713955201000}
+
+event: STEP_COMPLETED
+data: {"eventType":"STEP_COMPLETED","node":"execute","message":"步骤 1 执行成功","data":{"stepIndex":1,"toolName":"calculator","result":579},"timestamp":1713955202000}
+
+event: WORKFLOW_COMPLETE
+data: {"eventType":"WORKFLOW_COMPLETE","node":"workflow","message":"工作流执行完成","data":{"success":true,"finalAnswer":"579","duration":2500},"timestamp":1713955203000}
+```
+
+**前端使用示例**:
+
+```javascript
+const eventSource = new EventSource('/api/agent/stream?query=' + encodeURIComponent(query));
+
+eventSource.addEventListener('WORKFLOW_STARTED', (event) => {
+    const data = JSON.parse(event.data);
+    console.log('工作流开始:', data.message);
+});
+
+eventSource.addEventListener('STEP_COMPLETED', (event) => {
+    const data = JSON.parse(event.data);
+    console.log('步骤完成:', data.message, '结果:', data.data.result);
+});
+
+eventSource.addEventListener('WORKFLOW_COMPLETE', (event) => {
+    const data = JSON.parse(event.data);
+    console.log('最终答案:', data.data.finalAnswer);
+    eventSource.close();
+});
+```
+
+---
+
 ## 3. 错误响应
 
 当请求失败时，返回以下格式的错误响应：
@@ -247,5 +318,9 @@ print(response.json())
 
 ---
 
-*文档版本: 1.0.0*
+*文档版本: 1.1.0*
 *最后更新: 2026/04/24*
+
+**更新日志**:
+- v1.1.0 (2026/04/24): 新增流式执行接口 `/stream`，支持 SSE 实时推送
+- v1.0.0 (2026/04/24): 初始版本

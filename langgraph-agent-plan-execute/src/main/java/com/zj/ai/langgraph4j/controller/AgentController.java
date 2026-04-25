@@ -2,6 +2,7 @@ package com.zj.ai.langgraph4j.controller;
 
 import com.zj.ai.langgraph4j.domain.state.PlanExecuteState;
 import com.zj.ai.langgraph4j.exception.WorkflowException;
+import com.zj.ai.langgraph4j.service.WorkflowStreamService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -11,8 +12,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.CompiledGraph;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +34,7 @@ import java.util.Map;
 public class AgentController {
 
     private final CompiledGraph<PlanExecuteState> planExecuteWorkflow;
+    private final WorkflowStreamService workflowStreamService;
 
     /**
      * 执行查询
@@ -79,6 +83,22 @@ public class AgentController {
         response.put("status", "UP");
         response.put("service", "plan-execute-agent");
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 流式执行查询
+     * 通过 SSE 推送执行进度
+     *
+     * @param query     查询内容
+     * @param maxRePlan 最大重规划次数
+     * @return SSE Emitter
+     */
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter executeStream(
+            @RequestParam String query,
+            @RequestParam(required = false) Integer maxRePlan) {
+        log.info("收到流式查询请求: {}", query);
+        return workflowStreamService.executeStreamWithSteps(query, maxRePlan);
     }
 
     /**

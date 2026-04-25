@@ -6,158 +6,604 @@
     <title>Plan-Execute Agent Studio</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #475569;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-main);
             min-height: 100vh;
-            padding: 20px;
+            color: var(--text-primary);
+            line-height: 1.6;
         }
+
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 40px 20px;
         }
+
+        /* Header */
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
+
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
         }
+
         .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
         }
-        .card {
-            background: white;
+
+        /* Input Section */
+        .input-card {
+            background: var(--bg-card);
             border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            padding: 30px;
-            margin-bottom: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
         }
-        .input-section {
+
+        .examples {
+            margin-bottom: 16px;
+        }
+
+        .examples-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .example-btns {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
-        .input-section input {
+
+        .example-btn {
+            padding: 8px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .example-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-row input {
             flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+            padding: 14px 18px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s ease;
         }
-        .input-section input:focus {
+
+        .input-row input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
-        .btn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .input-row input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .submit-btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .btn:hover {
+
+        .submit-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
         }
-        .btn:disabled {
+
+        .submit-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
-        .graph-section {
+
+        .submit-btn .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Status Badge */
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-badge.idle {
+            background: var(--bg-input);
+            color: var(--text-secondary);
+        }
+
+        .status-badge.running {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .status-badge.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .duration {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Progress Section */
+        .progress-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
-        .graph-section h3 {
-            margin-bottom: 15px;
-            color: #333;
+
+        .progress-title {
+            font-size: 1.1rem;
+            font-weight: 600;
         }
+
+        /* Two Column Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .progress-wrapper, .graph-wrapper {
+            height: 450px;
+        }
+
+        .progress-card, .graph-card {
+            height: 100%;
+        }
+
+        /* Steps List */
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .step-item {
+            display: flex;
+            gap: 14px;
+            padding: 16px;
+            background: var(--bg-input);
+            border-radius: 12px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-indicator {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-indicator.pending {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .step-indicator.running {
+            background: rgba(99, 102, 241, 0.15);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .step-indicator.completed {
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid var(--success);
+            color: var(--success);
+        }
+
+        .step-indicator.failed {
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid var(--error);
+            color: var(--error);
+        }
+
+        .step-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .step-description {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .step-tool {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .step-result {
+            margin-top: 10px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: var(--success);
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .step-error {
+            margin-top: 10px;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--error);
+        }
+
+        /* Graph Section */
+        .graph-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .graph-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
         #graph-container {
-            background: #f8f9fa;
-            border-radius: 10px;
+            background: var(--bg-input);
+            border-radius: 12px;
             padding: 20px;
             overflow-x: auto;
-        }
-        .output-section {
-            margin-top: 20px;
-        }
-        .output-section h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-        #output {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            border-radius: 10px;
-            padding: 20px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            max-height: 500px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .status {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-        .status.idle {
-            background: #e0e0e0;
-            color: #666;
-        }
-        .status.running {
-            background: #fff3cd;
-            color: #856404;
-        }
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .examples {
-            margin-bottom: 20px;
-        }
-        .examples h4 {
-            margin-bottom: 10px;
-            color: #666;
-        }
-        .example-btns {
+            flex: 1;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            align-items: center;
+            justify-content: center;
         }
-        .example-btn {
-            padding: 8px 16px;
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
+
+        /* Mermaid 节点样式增强 */
+        #graph-container .nodeLabel {
+            font-size: 14px !important;
         }
-        .example-btn:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+
+        #graph-container .node circle,
+        #graph-container .node ellipse,
+        #graph-container .node polygon,
+        #graph-container .node rect {
+            stroke-width: 2px !important;
+        }
+
+        /* START 节点样式 */
+        #graph-container .node.START,
+        #graph-container .node.id-START {
+            fill: #10b981 !important;
+        }
+
+        /* END 节点样式 */
+        #graph-container .node.END,
+        #graph-container .node.id-END {
+            fill: #ef4444 !important;
+        }
+
+        /* Output Section */
+        .output-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            min-height: 120px;
+        }
+
+        .output-card.empty .final-answer {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .output-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .final-answer {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(192, 132, 252, 0.1));
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .final-answer .label {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 8px;
+        }
+
+        .timeline::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .timeline::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .timeline::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .timeline::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 16px;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--bg-card);
+        }
+
+        .timeline-item.success::before {
+            background: var(--success);
+        }
+
+        .timeline-item.error::before {
+            background: var(--error);
+        }
+
+        .timeline-item.warning::before {
+            background: var(--warning);
+        }
+
+        .timeline-node {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-message {
+            color: var(--text-primary);
+        }
+
+        .timeline-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .timeline-placeholder {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 0.95rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+        }
+
+        .timeline-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Log Output */
+        .log-output {
+            background: var(--bg-main);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-line {
+            padding: 2px 0;
+            opacity: 0;
+            animation: fadeIn 0.2s ease forwards;
+        }
+
+        .log-line .time {
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+
+        .log-line.info { color: var(--text-primary); }
+        .log-line.success { color: var(--success); }
+        .log-line.error { color: var(--error); }
+        .log-line.warn { color: var(--warning); }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .input-row {
+                flex-direction: column;
+            }
+
+            .submit-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .example-btns {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -165,12 +611,12 @@
     <div class="container">
         <div class="header">
             <h1>Plan-Execute Agent Studio</h1>
-            <p>可视化工作流调试界面 - 输入问题，观察 AI Agent 的规划和执行过程</p>
+            <p>智能工作流执行引擎 - 实时追踪 AI Agent 的规划与执行过程</p>
         </div>
 
-        <div class="card">
+        <div class="input-card">
             <div class="examples">
-                <h4>示例问题:</h4>
+                <div class="examples-label">快速示例</div>
                 <div class="example-btns">
                     <button class="example-btn" onclick="setExample('计算 123 + 456 的结果')">简单计算</button>
                     <button class="example-btn" onclick="setExample('帮我查询北京今天的天气情况')">天气查询</button>
@@ -179,56 +625,158 @@
                 </div>
             </div>
 
-            <div class="input-section">
-                <input type="text" id="query-input" placeholder="请输入您的问题..." />
-                <button class="btn" id="submit-btn" onclick="executeWorkflow()">执行</button>
+            <div class="input-row">
+                <input type="text" id="query-input" placeholder="输入您的问题..." />
+                <button class="submit-btn" id="submit-btn" onclick="executeWorkflow()">
+                    <span id="btn-text">执行</span>
+                </button>
             </div>
 
-            <span class="status idle" id="status">就绪</span>
-        </div>
-
-        <div class="card graph-section">
-            <h3>工作流图</h3>
-            <div id="graph-container">
-                <div class="mermaid" id="mermaid-graph"></div>
+            <div class="status-row">
+                <span class="status-badge idle" id="status">
+                    <span id="status-icon">●</span>
+                    <span id="status-text">就绪</span>
+                </span>
+                <span class="duration" id="duration"></span>
             </div>
         </div>
 
-        <div class="card output-section">
-            <h3>执行结果</h3>
-            <div id="output">等待执行...</div>
+        <div class="main-content">
+            <div class="progress-wrapper">
+                <div class="progress-card" id="progress-card">
+                    <div class="progress-header">
+                        <span class="progress-title">实时进度</span>
+                    </div>
+                    <div class="timeline" id="timeline">
+                        <div class="timeline-placeholder" id="timeline-placeholder">
+                            输入问题后点击执行，查看实时进度
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="graph-wrapper">
+                <div class="graph-card">
+                    <div class="graph-title">工作流图</div>
+                    <div id="graph-container">
+                        <div class="mermaid" id="mermaid-graph"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="output-card empty" id="output-card">
+            <div class="output-header">
+                <span class="output-title">最终结果</span>
+            </div>
+            <div class="final-answer" id="final-answer">执行完成后将在此显示结果...</div>
         </div>
     </div>
 
     <script>
-        mermaid.initialize({ startOnLoad: false, theme: 'default' });
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#6366f1',
+                primaryTextColor: '#f1f5f9',
+                primaryBorderColor: '#475569',
+                lineColor: '#6366f1',
+                secondaryColor: '#1e293b',
+                tertiaryColor: '#334155'
+            }
+        });
 
-        // 初始化加载图结构
+        let eventSource = null;
+        let startTime = null;
+
         async function initGraph() {
             try {
                 const response = await fetch('/init');
                 const data = await response.json();
-
-                // 渲染 Mermaid 图
                 const mermaidDiv = document.getElementById('mermaid-graph');
-                // 清理 mermaid 代码中的注释行
-                const cleanGraph = data.graph.replace(/%%.*$/gm, '').trim();
+                let cleanGraph = data.graph.replace(/%%.*$/gm, '').trim();
+
+                // 添加样式定义，使 START 和 END 节点更明显
+                const styleDefs = `
+                    classDef startNode fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+                    classDef endNode fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:2px
+                    classDef normalNode fill:#6366f1,stroke:#4f46e5,color:#fff,stroke-width:2px
+                `;
+
+                // 确保样式被添加到图中
+                if (!cleanGraph.includes('classDef startNode')) {
+                    cleanGraph = cleanGraph + '\n' + styleDefs;
+                }
+
+                // 为 START 节点应用样式
+                cleanGraph = cleanGraph.replace(/START\[/g, 'START:::startNode[');
+                cleanGraph = cleanGraph.replace(/END\[/g, 'END:::endNode[');
+
                 mermaidDiv.textContent = cleanGraph;
                 await mermaid.run();
-
-                document.getElementById('output').textContent = '工作流已加载，请输入问题开始执行。';
             } catch (error) {
-                document.getElementById('output').textContent = '加载工作流失败: ' + error.message;
+                console.error('加载工作流图失败:', error);
             }
         }
 
-        // 设置示例
         function setExample(text) {
             document.getElementById('query-input').value = text;
         }
 
-        // 执行工作流
-        async function executeWorkflow() {
+        function formatDuration(ms) {
+            if (ms < 1000) return `${ms}ms`;
+            if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+            return `${Math.floor(ms / 60000)}m ${((ms % 60000) / 1000).toFixed(0)}s`;
+        }
+
+        function formatTime(timestamp) {
+            return new Date(timestamp).toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function setStatus(status, text) {
+            const badge = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+            badge.className = `status-badge ${status}`;
+            statusText.textContent = text;
+        }
+
+        function addTimelineItem(node, message, type = '', timestamp = null) {
+            const timeline = document.getElementById('timeline');
+
+            // Clear placeholder on first item
+            const placeholder = timeline.querySelector('.timeline-placeholder');
+            if (placeholder) {
+                placeholder.remove();
+            }
+
+            const item = document.createElement('div');
+            item.className = `timeline-item ${type}`;
+            item.innerHTML = `
+                <div class="timeline-node">${node}</div>
+                <div class="timeline-message">${message}</div>
+                ${timestamp ? `<div class="timeline-time">${formatTime(timestamp)}</div>` : ''}
+            `;
+            timeline.appendChild(item);
+            item.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        function showFinalAnswer(answer, success) {
+            const outputCard = document.getElementById('output-card');
+            const finalAnswer = document.getElementById('final-answer');
+
+            outputCard.classList.remove('empty');
+            finalAnswer.innerHTML = `
+                <div class="label">${success ? '答案' : '执行结果'}</div>
+                <div>${answer || '未能获取答案'}</div>
+            `;
+        }
+
+        function executeWorkflow() {
             const query = document.getElementById('query-input').value.trim();
             if (!query) {
                 alert('请输入问题');
@@ -236,66 +784,140 @@
             }
 
             const submitBtn = document.getElementById('submit-btn');
-            const statusEl = document.getElementById('status');
-            const outputEl = document.getElementById('output');
+            const btnText = document.getElementById('btn-text');
+            const timeline = document.getElementById('timeline');
+            const duration = document.getElementById('duration');
 
+            // Reset UI
             submitBtn.disabled = true;
-            statusEl.className = 'status running';
-            statusEl.textContent = '执行中...';
-            outputEl.textContent = '正在执行工作流...\n';
+            btnText.innerHTML = '<div class="spinner"></div>';
+            setStatus('running', '执行中...');
+            document.getElementById('output-card').classList.add('empty');
+            document.getElementById('final-answer').innerHTML = '执行完成后将在此显示结果...';
+            timeline.innerHTML = '<div class="timeline-placeholder">正在连接工作流...</div>';
+            duration.textContent = '';
 
-            try {
-                const response = await fetch('/api/agent/query', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ query: query })
-                });
+            startTime = Date.now();
 
-                const result = await response.json();
+            // Update duration timer
+            const durationInterval = setInterval(() => {
+                duration.textContent = formatDuration(Date.now() - startTime);
+            }, 100);
 
-                if (result.success) {
-                    statusEl.className = 'status success';
-                    statusEl.textContent = '执行成功';
+            // Create EventSource for SSE
+            const url = `/api/agent/stream?query=${encodeURIComponent(query)}`;
+            eventSource = new EventSource(url);
 
-                    let output = `问题: ${result.query}\n\n`;
-                    if (result.plan) {
-                        output += `=== 执行计划 ===\n${JSON.stringify(result.plan, null, 2)}\n\n`;
-                    }
-                    if (result.executionResults && result.executionResults.length > 0) {
-                        output += `=== 执行结果 ===\n`;
-                        result.executionResults.forEach((r, i) => {
-                            output += `[${i + 1}] ${JSON.stringify(r, null, 2)}\n`;
-                        });
-                        output += '\n';
-                    }
-                    if (result.finalAnswer) {
-                        output += `=== 最终答案 ===\n${result.finalAnswer}\n`;
-                    }
-                    outputEl.textContent = output;
-                } else {
-                    statusEl.className = 'status error';
-                    statusEl.textContent = '执行失败';
-                    outputEl.textContent = `错误: ${result.error}\n`;
+            eventSource.addEventListener('WORKFLOW_STARTED', (event) => {
+                const data = JSON.parse(event.data);
+                addTimelineItem('workflow', '开始执行工作流', '', data.timestamp);
+            });
+
+            eventSource.addEventListener('PLAN_CREATED', (event) => {
+                const data = JSON.parse(event.data);
+                const steps = data.data?.steps || [];
+                addTimelineItem('plan', `计划生成完成，共 ${steps.length} 个步骤`, '', data.timestamp);
+
+                // Show plan steps
+                if (steps.length > 0) {
+                    steps.forEach((step, index) => {
+                        setTimeout(() => {
+                            addTimelineItem(
+                                `step ${index + 1}`,
+                                `${step.description} → ${step.toolName}`,
+                                'pending',
+                                data.timestamp + index * 10
+                            );
+                        }, (index + 1) * 100);
+                    });
                 }
-            } catch (error) {
-                statusEl.className = 'status error';
-                statusEl.textContent = '网络错误';
-                outputEl.textContent = `请求失败: ${error.message}\n`;
-            } finally {
+            });
+
+            eventSource.addEventListener('VALIDATION_COMPLETE', (event) => {
+                const data = JSON.parse(event.data);
+                const feasible = data.data?.feasible;
+                addTimelineItem(
+                    'validate',
+                    data.message,
+                    feasible ? 'success' : 'warning',
+                    data.timestamp
+                );
+            });
+
+            eventSource.addEventListener('STEP_STARTED', (event) => {
+                const data = JSON.parse(event.data);
+                addTimelineItem('execute', `开始执行: ${data.message}`, '', data.timestamp);
+            });
+
+            eventSource.addEventListener('STEP_COMPLETED', (event) => {
+                const data = JSON.parse(event.data);
+                addTimelineItem('execute', `✓ ${data.message}`, 'success', data.timestamp);
+            });
+
+            eventSource.addEventListener('STEP_FAILED', (event) => {
+                const data = JSON.parse(event.data);
+                addTimelineItem('execute', `✗ ${data.message}`, 'error', data.timestamp);
+            });
+
+            eventSource.addEventListener('REPLAN_TRIGGERED', (event) => {
+                const data = JSON.parse(event.data);
+                addTimelineItem('replan', data.message, 'warning', data.timestamp);
+            });
+
+            eventSource.addEventListener('WORKFLOW_COMPLETE', (event) => {
+                const data = JSON.parse(event.data);
+                clearInterval(durationInterval);
+
+                const elapsed = Date.now() - startTime;
+                duration.textContent = formatDuration(elapsed);
+
+                const success = data.data?.success;
+                const finalAnswer = data.data?.finalAnswer;
+
+                setStatus(success ? 'success' : 'error', success ? '执行成功' : '执行失败');
+                addTimelineItem('workflow', data.message, success ? 'success' : 'error', data.timestamp);
+
+                if (finalAnswer) {
+                    showFinalAnswer(finalAnswer, success);
+                }
+
                 submitBtn.disabled = false;
-            }
+                btnText.textContent = '执行';
+                eventSource.close();
+            });
+
+            eventSource.addEventListener('ERROR', (event) => {
+                const data = JSON.parse(event.data);
+                clearInterval(durationInterval);
+
+                setStatus('error', '执行失败');
+                addTimelineItem('error', data.message, 'error', data.timestamp);
+
+                submitBtn.disabled = false;
+                btnText.textContent = '执行';
+                eventSource.close();
+            });
+
+            eventSource.onerror = (error) => {
+                clearInterval(durationInterval);
+                console.error('SSE Error:', error);
+                setStatus('error', '连接错误');
+                addTimelineItem('error', '连接中断，请重试', 'error', Date.now());
+
+                submitBtn.disabled = false;
+                btnText.textContent = '执行';
+                if (eventSource) eventSource.close();
+            };
         }
 
-        // 回车提交
+        // Enter key submit
         document.getElementById('query-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 executeWorkflow();
             }
         });
 
-        // 页面加载时初始化
+        // Initialize on load
         initGraph();
     </script>
 </body>
