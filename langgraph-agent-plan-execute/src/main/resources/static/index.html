@@ -697,21 +697,25 @@
                 const mermaidDiv = document.getElementById('mermaid-graph');
                 let cleanGraph = data.graph.replace(/%%.*$/gm, '').trim();
 
-                // 添加样式定义，使 START 和 END 节点更明显
+                // 解析并增强图定义
+                // 添加开始和结束节点的样式
                 const styleDefs = `
-                    classDef startNode fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
-                    classDef endNode fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:2px
-                    classDef normalNode fill:#6366f1,stroke:#4f46e5,color:#fff,stroke-width:2px
-                `;
 
-                // 确保样式被添加到图中
-                if (!cleanGraph.includes('classDef startNode')) {
-                    cleanGraph = cleanGraph + '\n' + styleDefs;
+    classDef startNode fill:#10b981,stroke:#059669,color:#fff,stroke-width:3px
+    classDef endNode fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:3px`;
+
+                // 处理 START 节点 - 将其转换为可见的圆形节点并应用样式
+                if (cleanGraph.includes('START')) {
+                    cleanGraph = cleanGraph.replace(/\bSTART\b/g, 'startNode(("开始")):::startNode');
                 }
 
-                // 为 START 节点应用样式
-                cleanGraph = cleanGraph.replace(/START\[/g, 'START:::startNode[');
-                cleanGraph = cleanGraph.replace(/END\[/g, 'END:::endNode[');
+                // 处理 END 节点
+                if (cleanGraph.includes('END')) {
+                    cleanGraph = cleanGraph.replace(/\bEND\b/g, 'endNode(("结束")):::endNode');
+                }
+
+                // 添加样式定义
+                cleanGraph = cleanGraph + styleDefs;
 
                 mermaidDiv.textContent = cleanGraph;
                 await mermaid.run();
