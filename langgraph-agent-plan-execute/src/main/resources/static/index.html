@@ -250,7 +250,7 @@
         }
 
         .progress-wrapper, .graph-wrapper {
-            height: 450px;
+            height: 650px;
         }
 
         .progress-card, .graph-card {
@@ -695,32 +695,31 @@
                 const response = await fetch('/init');
                 const data = await response.json();
                 const mermaidDiv = document.getElementById('mermaid-graph');
-                let cleanGraph = data.graph.replace(/%%.*$/gm, '').trim();
+                let graph = data.graph;
 
-                // 解析并增强图定义
-                // 添加开始和结束节点的样式
-                const styleDefs = `
-
-    classDef startNode fill:#10b981,stroke:#059669,color:#fff,stroke-width:3px
-    classDef endNode fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:3px`;
-
-                // 处理 START 节点 - 将其转换为可见的圆形节点并应用样式
-                if (cleanGraph.includes('START')) {
-                    cleanGraph = cleanGraph.replace(/\bSTART\b/g, 'startNode(("开始")):::startNode');
-                }
-
-                // 处理 END 节点
-                if (cleanGraph.includes('END')) {
-                    cleanGraph = cleanGraph.replace(/\bEND\b/g, 'endNode(("结束")):::endNode');
-                }
+                console.log('原始图定义:', graph);
 
                 // 添加样式定义
-                cleanGraph = cleanGraph + styleDefs;
+                const styleDefs = `
+    classDef startNode fill:#10b981,stroke:#059669,color:#fff,stroke-width:3px
+    classDef endNode fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:3px
+    class START startNode
+    class __START__ startNode
+    class END endNode
+    class __END__ endNode`;
 
-                mermaidDiv.textContent = cleanGraph;
+                // 添加样式
+                graph = graph + styleDefs;
+
+                console.log('处理后图定义:', graph);
+
+                mermaidDiv.textContent = graph;
                 await mermaid.run();
             } catch (error) {
                 console.error('加载工作流图失败:', error);
+                // 显示错误信息
+                const mermaidDiv = document.getElementById('mermaid-graph');
+                mermaidDiv.innerHTML = `<div style="color: var(--error); padding: 20px;">图表加载失败: ${error.message}</div>`;
             }
         }
 
